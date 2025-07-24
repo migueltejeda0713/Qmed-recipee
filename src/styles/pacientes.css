@@ -1,0 +1,198 @@
+/* Overlay que cubre toda la pantalla y centra el modal */
+.container-popup {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Animaciones de apertura y cierre */
+  @keyframes popup-open {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  @keyframes popup-close {
+    from { transform: scale(1);   opacity: 1; }
+    to   { transform: scale(0.8); opacity: 0; }
+  }
+  .container-popup.open  { animation: popup-open  0.3s ease-out forwards; }
+  .container-popup.close { animation: popup-close 0.3s ease-out forwards; }
+  
+  /* Wrapper draggable: limita ancho máximo a 800px */
+  .draggable-wrapper {
+    width: 100%;
+    max-width: 800px;    /* antes era 650px */
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* Modal / tarjeta del formulario */
+  .container-paciente {
+    position: relative;
+    background-color: #ffffff;
+    margin: auto;
+    max-width: 800px;    /* ancho aumentado */
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 1rem;
+    padding: 2rem 2rem 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+  }
+  
+  /* Título arrastrable */
+  .container-paciente h1 {
+    text-align: center;
+    cursor: grab;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  /* Botón de cierre dentro del modal */
+  .close-popup-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: #e53e3e;
+    color: #ffffff;
+    border: none;
+    width: 24px;
+    height: 24px;
+    font-size: 1rem;
+    line-height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    padding: 0;
+  }
+  .close-popup-btn:hover {
+    background-color: #c53030;
+  }
+  
+  /* Organiza los grupos de campos: Paciente (2fr) | Seguro (1fr) */
+  .container-datos {
+    display: flex;
+    gap: 1rem;
+  }
+  .container-datos-pacientes {
+    flex: 2;         /* toma dos tercios del ancho */
+  }
+  .container-datos-seguro {
+    flex: 1;         /* toma un tercio del ancho */
+  }
+  @media (max-width: 700px) {
+    .container-datos {
+      flex-direction: column;
+    }
+  }
+  
+  /* Tarjetas internas para inputs */
+  .container-datos-pacientes,
+  .container-datos-seguro {
+    background-color: #f8fafc;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  /* Labels e inputs */
+  .paciente-label {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+  }
+  
+  .paciente-input,
+  #seguros,
+  .seguros-container {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    background-color: #ffffff;
+  }
+  .paciente-input:focus,
+  #seguros:focus,
+  .seguros-container:focus {
+    outline: 2px solid #3b82f6;
+    border-color: transparent;
+  }
+
+
+
+  
+  /* Estado de error */
+  .error-input {
+    border-color: #f82d12;
+    background-color: rgba(248, 22, 22, 0.17);
+  }
+  .error-message {
+    color: #f82d12;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  
+  /* Selector personalizado */
+  .seguros-container {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+  }
+  
+  /* Footer de botones */
+  .footer-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+  }
+  
+  .btn-enviar {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  .btn-enviar:hover {
+    background-color: #2563eb;
+  }
+  .btn-enviar.disabled,
+  .btn-enviar:disabled {
+    background-color: #e2e8f0;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+
+  /* Contenedor para fecha de nacimiento y edad */
+.fecha-edad-container {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Ajuste para pantallas pequeñas */
+@media (max-width: 500px) {
+  .fecha-edad-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

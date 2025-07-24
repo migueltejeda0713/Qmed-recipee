@@ -1,0 +1,67 @@
+/* sidebar.css */
+.sidebar-menu {
+  width: 260px;                       /* ancho ajustado */
+  height: 100vh;                      /* ocupa todo el alto */
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+  box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  padding-top: 1rem;
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+/* Hacemos que el PanelMenu llene su contenedor y no cree bordes extra */
+.sidebar-menu .p-panelmenu {
+  flex: 1;
+  margin: 0;
+  border: none;
+  border-radius: 0;                  /* anulamos radios duplicados */
+}
+
+/* Cabeceras de sección */
+.sidebar-menu .p-panelmenu .p-panelmenu-header {
+  background: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  padding: 0.75rem 1rem;
+}
+
+/* Links de ítems */
+.sidebar-menu .p-menuitem-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem !important;
+  margin: 0.25rem 0.5rem;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+/* Íconos */
+.sidebar-menu .p-menuitem-icon {
+  font-size: 1.3rem !important;
+  margin-right: 0.75rem !important;
+  color: #3b82f6 !important;
+}
+
+/* Hover / activo */
+.sidebar-menu .p-menuitem-link:hover,
+.sidebar-menu .p-menuitem-link.p-menuitem-link-active {
+  background-color: #e9f2ff !important;
+  color: #1e3a8a !important;
+}
+
+/* Separadores suaves */
+.sidebar-menu .p-panelmenu-content .p-menuitem {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Elimina bordes en los extremos */
+.sidebar-menu .p-panelmenu-header:first-child,
+.sidebar-menu .p-panelmenu-content .p-menuitem:last-child {
+  border-radius: 0;
+}

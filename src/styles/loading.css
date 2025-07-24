@@ -1,0 +1,43 @@
+.loader {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    animation: rotate 1s linear infinite;
+
+    margin: 0 auto;
+  }
+
+  .cross {
+    position: absolute;
+    width: 20px;
+    height: 80px;
+    background-color: #e10600;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    border-radius: 4px;
+  }
+
+  .cross::before {
+    content: "";
+    position: absolute;
+    width: 80px;
+    height: 20px;
+    background-color: #e10600;
+    top: 50%;
+    left: -30px;
+    transform: translateY(-50%);
+    border-radius: 4px;
+  }
+
+  @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(180deg);
+    }
+    100%{
+      transform: rotate(180deg)
+    }
+  }

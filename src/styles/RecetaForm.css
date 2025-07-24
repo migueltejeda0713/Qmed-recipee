@@ -1,0 +1,280 @@
+/* src/styles/RecetaForm.css */
+
+.receta-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", sans-serif;
+  box-sizing: border-box;
+}
+
+.receta-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.receta-column h3 {
+  font-size: 1.5rem;
+  color: #1f2a37;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.25rem;
+}
+
+.receta-column label {
+  display: flex;
+  flex-direction: column;
+  color: #334155;
+  font-weight: 500;
+}
+
+.receta-column input,
+.receta-column textarea {
+  margin-top: 0.25rem;
+  padding: 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.receta-column input:focus,
+.receta-column textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  background: #fff;
+}
+
+/* Lista de medicamentos */
+.medicamentos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.medicamento-item {
+  background: #f5f8fb;
+  padding: 1rem;
+  border-radius: 8px;
+  position: relative;
+}
+
+.remove-medicamento-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+}
+
+/* Guardar Medicamento */
+.save-medicamento-btn {
+  background-color: #1e40af;   /* azul oscuro */
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+
+.save-medicamento-btn:hover {
+  background-color: #1e3a8a;
+}
+
+/* Preview del medicamento guardado */
+.medicamento-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: #eef4ff;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.preview-text {
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+/* Botones de editar/eliminar en preview */
+.preview-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Editar */
+.btn-edit {
+  background-color: #4ade80;  /* verde claro original */
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-edit img {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-edit:hover {
+  background-color: #22c55e;
+}
+
+/* Eliminar */
+.btn-delete {
+  background-color: #ef4444;  /* rojo original */
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-delete img {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+}
+
+/* Botón Agregar Medicamento */
+.add-medicamento-btn {
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: auto;
+  align-self: flex-start;
+  transition: background 0.2s;
+}
+textarea{
+  resize: none;
+}
+.add-medicamento-btn:hover {
+  background-color: #1e40af;
+}
+
+/* Botón Guardar Receta */
+.receta-actions {
+  grid-column: span 2;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.receta-actions button {
+  background-color: #3b82f6;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.receta-actions button:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.input-select-wrapper {
+  position: relative;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #f9fafb;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  margin-top: 0.25rem;
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #e2e8f0;
+}
+
+/* Botón Agregar Prescripción */
+/* Botón Agregar Prescripción */
+.add-prescripcion-btn {
+  background-color: #3b82f6; /* Azul consistente con Guardar Receta */
+  color: #fff;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  align-self: flex-start;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.add-prescripcion-btn:hover {
+  background-color: #2563eb; /* Mismo tono que Guardar Receta en hover */
+  transform: translateY(-1px);
+}
+
+
+.prescription-preview {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: #eef4ff;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  gap: 1rem;
+}
+
+.preview-text {
+  flex: 1;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.preview-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
