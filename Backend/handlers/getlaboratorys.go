@@ -10,19 +10,12 @@ import (
     "Qmed-Recipe/models"
 )
 
-// GetLaboratorios devuelve todos los laboratorios registrados
 func GetLaboratorios(w http.ResponseWriter, r *http.Request) {
-    // CORS preflight
+    
     if r.Method == http.MethodOptions {
         w.WriteHeader(http.StatusOK)
         return
     }
-
-    // Cabeceras CORS y JSON
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-    w.Header().Set("Content-Type", "application/json")
 
     dbConn := db.InitDB()
     defer dbConn.Close()

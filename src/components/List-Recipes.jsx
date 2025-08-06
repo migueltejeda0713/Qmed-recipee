@@ -13,7 +13,7 @@ const MOCK_RECETAS = [
   { id: 5, pacienteNombre: "Ana Martínez", medicamento: "Omeprazol 20mg", createdAt: "2025-07-10" },
 ];
 
-export default function ListRecetas({ onAddReceta, onEditReceta, onViewReceta }) {
+export default function ListRecipes({ onAddReceta, onEditReceta, onViewReceta }) {
   const [recetas, setRecetas] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRecetas, setFilteredRecetas] = useState([]);

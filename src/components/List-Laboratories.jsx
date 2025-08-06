@@ -1,4 +1,4 @@
-// src/components/ListPacients.jsx
+// src/components/ListLaboratories.jsx
 import React, {
   useState,
   useEffect,
@@ -6,49 +6,45 @@ import React, {
   useImperativeHandle,
 } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/listpacients.css";
+import "../styles/listlaboratories.css";
 import Loading from "./Loading";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
 import EditIcon from "../svg/edit-3-svgrepo-com.svg";
 import ViewIcon from "../svg/zoom-in-svgrepo-com.svg";
 import SearchIcon from "../svg/search-left-1504-svgrepo-com.svg";
 import { API_URL } from "../utils/api";
-import PacienteDetalleModal from "../components/Pacientdetails";
-import {
-  getAllPacientes,
-  savePacientes,
-  deletePacienteIndexed,
-} from "../utils/indexedDB";
+
+
 import { ConfirmDialog } from "primereact/confirmdialog";
 import { confirmDialog } from "primereact/confirmdialog";
 
-const ListPacients = forwardRef((props, ref) => {
+const ListLaboratories = forwardRef((props, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [pacientes, setPacientes] = useState([]);
+  const [laboratorios, setLaboratorios] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadDuration, setLoadDuration] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState({ name: "" });
-  const [filteredPacientes, setFilteredPacientes] = useState([]);
+  const [filteredLaboratorios, setFilteredLaboratorios] = useState([]);
   const [showDetalle, setShowDetalle] = useState(false);
-  const [detallePaciente, setDetallePaciente] = useState(null);
+  const [detalleLaboratorio, setDetalleLaboratorio] = useState(null);
   const [moduleAnimation, setModuleAnimation] = useState(false);
 
   useImperativeHandle(ref, () => ({
-    refreshPacientes,
+    refreshLaboratorios,
   }));
 
   useEffect(() => {
-    getAllPacientes().then((cached) => {
-      if (cached.length) setPacientes(cached);
-      fetchPacientes(1, { silent: cached.length > 0 });
+    getAllLaboratorios().then((cached) => {
+      if (cached.length) setLaboratorios(cached);
+      fetchLaboratorios(1, { silent: cached.length > 0 });
     });
   }, []);
 
-  const fetchPacientes = async (nextPage = 1, { silent = false } = {}) => {
+  const fetchLaboratorios = async (nextPage = 1, { silent = false } = {}) => {
     if (loading) return;
     if (!silent) setLoading(true);
     const start = performance.now();
@@ -56,7 +52,7 @@ const ListPacients = forwardRef((props, ref) => {
 
     try {
       const res = await fetch(
-        `${API_URL}/api/pacientes_pag?page=${nextPage}&limit=10`,
+        `${API_URL}/api/laboratorios_pag?page=${nextPage}&limit=10`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -64,12 +60,12 @@ const ListPacients = forwardRef((props, ref) => {
           },
         }
       );
-      if (!res.ok) throw new Error("Error cargando pacientes");
+      if (!res.ok) throw new Error("Error cargando laboratorios");
       const data = await res.json();
 
       setHasMore(nextPage === 1 ? data.length >= 10 : data.length >= 10);
-      await savePacientes(data);
-      setPacientes((prev) =>
+      await saveLaboratorios(data);
+      setLaboratorios((prev) =>
         nextPage === 1
           ? data
           : [
@@ -79,7 +75,7 @@ const ListPacients = forwardRef((props, ref) => {
       );
       setPage(nextPage);
     } catch (err) {
-      console.error("Error al obtener pacientes:", err);
+      console.error("Error al obtener laboratorios:", err);
     } finally {
       const end = performance.now();
       setLoadDuration(end - start);
@@ -87,11 +83,11 @@ const ListPacients = forwardRef((props, ref) => {
     }
   };
 
-  const refreshPacientes = () => {
-    setPacientes([]);
+  const refreshLaboratorios = () => {
+    setLaboratorios([]);
     setPage(1);
     setHasMore(true);
-    fetchPacientes(1);
+    fetchLaboratorios(1);
   };
 
   const handleSearch = (e) => {
@@ -101,13 +97,13 @@ const ListPacients = forwardRef((props, ref) => {
   useEffect(() => {
     const delay = setTimeout(() => {
       if (!searchTerm.name.trim()) {
-        setFilteredPacientes([]);
+        setFilteredLaboratorios([]);
         setHasMore(true);
         return;
       }
       const token = localStorage.getItem("token");
       fetch(
-        `${API_URL}/api/searchpacient?name=${encodeURIComponent(
+        `${API_URL}/api/searchlaboratorio?name=${encodeURIComponent(
           searchTerm.name
         )}`,
         {
@@ -119,70 +115,70 @@ const ListPacients = forwardRef((props, ref) => {
       )
         .then((res) => res.json())
         .then((data) => {
-          setFilteredPacientes(Array.isArray(data) ? data : []);
+          setFilteredLaboratorios(Array.isArray(data) ? data : []);
           setHasMore(false);
         })
         .catch((err) => {
-          console.error("Error buscando pacientes:", err);
-          setFilteredPacientes([]);
+          console.error("Error buscando laboratorios:", err);
+          setFilteredLaboratorios([]);
           setHasMore(false);
         });
     }, 300);
     return () => clearTimeout(delay);
   }, [searchTerm.name]);
 
-  const pacientesToRender =
-    searchTerm.name.trim() && filteredPacientes.length
-      ? filteredPacientes
+  const laboratoriosToRender =
+    searchTerm.name.trim() && filteredLaboratorios.length
+      ? filteredLaboratorios
       : searchTerm.name.trim()
       ? []
-      : pacientes;
+      : laboratorios;
 
-  // Navegar al modal de edición, pasando el paciente y la ruta de fondo
-  const handleEditPaciente = (paciente) => {
-    navigate("/editpacient", {
-      state: { paciente, background: location },
+  // Navegar al modal de edición, pasando el laboratorio y la ruta de fondo
+  const handleEditLaboratorio = (laboratorio) => {
+    navigate("/editlaboratorio", {
+      state: { laboratorio, background: location },
     });
   };
 
   // Navegar al modal de creación
-  const handleAddPaciente = () => {
-    navigate("/addpacient", {
+  const handleAddLaboratorio = () => {
+    navigate("/addlaboratorio", {
       state: { background: location },
     });
   };
 
-  const openDetalle = (e, paciente) => {
+  const openDetalle = (e, laboratorio) => {
     e?.preventDefault();
-    setDetallePaciente(paciente);
+    setDetalleLaboratorio(laboratorio);
     setShowDetalle(true);
     setModuleAnimation(true);
   };
 
   const handleDelete = async (id) => {
     try {
-      await deletePacienteIndexed(id);
-      setPacientes((prev) => prev.filter((p) => p.id !== id));
+      await deleteLaboratorioIndexed(id);
+      setLaboratorios((prev) => prev.filter((p) => p.id !== id));
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/api/deletepacient/${id}`, {
+      const res = await fetch(`${API_URL}/api/deletelaboratorio/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error("Error al eliminar paciente");
+      if (!res.ok) throw new Error("Error al eliminar laboratorio");
     } catch (err) {
       console.error(err);
-      alert("No se pudo eliminar el paciente.");
-      refreshPacientes();
+      alert("No se pudo eliminar el laboratorio.");
+      refreshLaboratorios();
     }
   };
 
   const confirmDelete = (id) => {
     confirmDialog({
-      message: "¿Estás seguro de que deseas eliminar este paciente?",
-      header: "Eliminar paciente",
+      message: "¿Estás seguro de que deseas eliminar este laboratorio?",
+      header: "Eliminar laboratorio",
       icon: "pi pi-exclamation-triangle",
       acceptLabel: "Eliminar",
       rejectLabel: "Cancelar",
@@ -191,11 +187,11 @@ const ListPacients = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="list-pacientes">
-      <h2 className="paciente-titulo">Lista de Pacientes</h2>
-      <header className="header-list-pacientes">
+    <div className="list-laboratorios">
+      <h2 className="laboratorio-titulo">Lista de Laboratorios</h2>
+      <header className="header-list-laboratorios">
         <button
-          onClick={handleAddPaciente}
+          onClick={handleAddLaboratorio}
           style={{
             backgroundColor: "#4F46E5",
             color: "#FFFFFF",
@@ -214,12 +210,12 @@ const ListPacients = forwardRef((props, ref) => {
             (e.currentTarget.style.backgroundColor = "#4F46E5")
           }
         >
-          Agregar Paciente
+          Agregar Laboratorio
         </button>
         <div className="search-container">
           <input
             type="text"
-            placeholder="Buscar paciente..."
+            placeholder="Buscar laboratorio..."
             className="search-input"
             value={searchTerm.name}
             onChange={handleSearch}
@@ -230,45 +226,39 @@ const ListPacients = forwardRef((props, ref) => {
         </div>
       </header>
 
-      <table className="pacientes-table">
+      <table className="laboratorios-table">
         <thead>
           <tr>
             <th>Nombre</th>
-            <th>Edad</th>
-            <th>Cédula</th>
-            <th>Teléfono</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {pacientesToRender.length === 0 ? (
+          {laboratoriosToRender.length === 0 ? (
             <tr>
               <td
-                colSpan="5"
+                colSpan="2"
                 style={{ textAlign: "center", fontStyle: "italic" }}
               >
                 {searchTerm.name.trim()
-                  ? `No se encontraron pacientes para "${searchTerm.name}"`
-                  : "No hay pacientes registrados"}
+                  ? `No se encontraron laboratorios para "${searchTerm.name}"`
+                  : "No hay laboratorios registrados"}
               </td>
             </tr>
           ) : (
-            pacientesToRender.map((paciente) => (
-              <tr key={paciente.id}>
-                <td>{paciente.name}</td>
-                <td>{paciente.edad}</td>
-                <td>{paciente.cedula}</td>
-                <td>{paciente.telefono}</td>
+            laboratoriosToRender.map((laboratorio) => (
+              <tr key={laboratorio.id}>
+                <td>{laboratorio.nombre_laboratorio}</td>
                 <td className="actions-cell">
                   <button
                     className="btn btn-edit"
-                    onClick={() => handleEditPaciente(paciente)}
+                    onClick={() => handleEditLaboratorio(laboratorio)}
                   >
                     <img src={EditIcon} alt="Editar" width={20} height={20} />
                   </button>
                   <button
                     className="btn btn-delete"
-                    onClick={() => confirmDelete(paciente.id)}
+                    onClick={() => confirmDelete(laboratorio.id)}
                   >
                     <img
                       src={DeleteIcon}
@@ -279,7 +269,7 @@ const ListPacients = forwardRef((props, ref) => {
                   </button>
                   <button
                     className="btn btn-view"
-                    onClick={(e) => openDetalle(e, paciente)}
+                    onClick={(e) => openDetalle(e, laboratorio)}
                   >
                     <img src={ViewIcon} alt="Ver datos" width={20} height={20} />
                   </button>
@@ -296,7 +286,7 @@ const ListPacients = forwardRef((props, ref) => {
         <div className="btn-more-container">
           <button
             className="btn btn-more"
-            onClick={() => fetchPacientes(page + 1)}
+            onClick={() => fetchLaboratorios(page + 1)}
           >
             Ver más
           </button>
@@ -306,8 +296,8 @@ const ListPacients = forwardRef((props, ref) => {
       <ConfirmDialog />
 
       {showDetalle && (
-        <PacienteDetalleModal
-          paciente={detallePaciente}
+        <LaboratorioDetalleModal
+          laboratorio={detalleLaboratorio}
           setShowDetalle={setShowDetalle}
           moduleAnimation={moduleAnimation}
         />
@@ -316,4 +306,4 @@ const ListPacients = forwardRef((props, ref) => {
   );
 });
 
-export default ListPacients;
+export default ListLaboratories;

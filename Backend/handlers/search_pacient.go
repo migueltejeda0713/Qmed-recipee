@@ -10,13 +10,9 @@ import (
 	"Qmed-Recipe/models"
 )
 
-// SearchPacient busca pacientes por nombre con búsqueda de texto completo (FULLTEXT)
-func SearchPacient(w http.ResponseWriter, r *http.Request) {
-	// CORS
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
+func SearchPacient(w http.ResponseWriter, r *http.Request) {
+	
 	if r.Method == http.MethodOptions {
 		log.Println("OPTIONS request received at /api/searchpacient")
 		w.WriteHeader(http.StatusOK)
@@ -81,7 +77,7 @@ func SearchPacient(w http.ResponseWriter, r *http.Request) {
 		pacientes = append(pacientes, p)
 	}
 
-	log.Printf("Se encontraron %d pacientes.\n", len(pacientes))
+	
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pacientes)

@@ -1,4 +1,6 @@
+// src/components/Pacientes.jsx
 import React, { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import "../styles/pacientes.css";
 import "../styles/index.css";
 import Draggable from "react-draggable";
@@ -7,15 +9,14 @@ import { API_URL } from "../utils/api";
 // Función para obtener token
 const getToken = () => localStorage.getItem("token") || "";
 
-export default function Pacientes({
-  paciente = {},
-  setPaciente,
-  setShowModule,
-  moduleAnimation,
-  onPacienteGuardado,
-}) {
-  const dragRef = useRef(null);
+export default function Pacientes(props) {
+  const location = useLocation();
+  // Normalizar paciente: prioriza props.paciente, luego state, y finalmente un objeto vacío
+  const pacienteProp = props.paciente ?? location.state?.paciente ?? {};
+  const paciente = pacienteProp || {};
+  const isEdit = Boolean(paciente.id);
 
+  const dragRef = useRef(null);
   const [aseguradoras, setAseguradoras] = useState([]);
   const [form, setForm] = useState({
     nombre_paciente: "",
@@ -39,41 +40,42 @@ export default function Pacientes({
     telefono_paciente: /^[0-9]{10}$/,
   };
 
+  // Calcula edad a partir de fecha
   const calculateAge = (birthDate) => {
     if (!birthDate) return "";
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age.toString();
+    const today = new Date(),
+      b = new Date(birthDate);
+    let age = today.getFullYear() - b.getFullYear();
+    const m = today.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+    return String(age);
   };
 
+  // Carga todas las aseguradoras para el select
   useEffect(() => {
-    const token = getToken();
     fetch(`${API_URL}/api/aseguradoras`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then((r) => r.json())
       .then(setAseguradoras)
       .catch(console.error);
   }, []);
 
+  // Inicializa el formulario en modo edición o inserción
   useEffect(() => {
-    if (paciente && paciente.id) {
-      const [nombre, ...rest] = (paciente.name || "").split(" ");
-      const fechaNacimiento = paciente.fecha_nacimiento || "";
-      setForm((f) => ({
-        ...f,
-        nombre_paciente: nombre,
+    if (isEdit) {
+      const [first, ...rest] = (paciente.name || "").split(" ");
+      const fecha = paciente.fecha_nacimiento || "";
+      setForm({
+        nombre_paciente: first,
         apellido_paciente: rest.join(" "),
         cedula_paciente: paciente.cedula || "",
         telefono_paciente: paciente.telefono || "",
-        fecha_nacimiento: fechaNacimiento,
-        edad_paciente: calculateAge(fechaNacimiento),
-      }));
+        fecha_nacimiento: fecha,
+        edad_paciente: calculateAge(fecha),
+        seguros: paciente.id_aseguradora ? String(paciente.id_aseguradora) : "",
+        poliza_paciente: "",
+      });
     } else {
       setForm({
         nombre_paciente: "",
@@ -85,57 +87,55 @@ export default function Pacientes({
         seguros: "",
         poliza_paciente: "",
       });
+      setErrors({});
+      setSubmitError("");
     }
-  }, [paciente]);
+  }, [isEdit, paciente]);
 
+ 
   useEffect(() => {
-    if (paciente && paciente.id && aseguradoras.length > 0) {
-      const token = getToken();
-      setForm((f) => ({
-        ...f,
-        seguros: String(paciente.id_aseguradora || ""),
-      }));
+    if (isEdit) {
       fetch(`${API_URL}/api/edit_aseguradora/${paciente.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       })
         .then((r) => {
           if (!r.ok) throw new Error("Error cargando póliza");
           return r.json();
         })
-        .then(({ numero_poliza, id_aseguradora }) =>
+        .then(({ numero_poliza, id_aseguradora }) => {
           setForm((f) => ({
             ...f,
-            seguros: String(id_aseguradora || ""),
             poliza_paciente: numero_poliza || "",
-          }))
-        )
+            seguros: id_aseguradora ? String(id_aseguradora) : f.seguros,
+          }));
+        })
         .catch(console.error);
     }
-  }, [paciente, aseguradoras]);
+  }, [isEdit, paciente.id]);
 
+  // Maneja cambios de input y validaciones
   const handleInputChange = (e) => {
     const { name, value, checked } = e.target;
     if (name === "forceError") {
       setForceError(checked);
       return;
     }
-
     setForm((f) => {
-      const newForm = { ...f, [name]: value };
+      const u = { ...f, [name]: value };
       if (name === "fecha_nacimiento") {
-        newForm.edad_paciente = calculateAge(value);
+        u.edad_paciente = calculateAge(value);
       }
-      return newForm;
+      return u;
     });
-
-    let error = "";
-    if (name === "nombre_paciente" && !regex.nombre.test(value)) error = "Solo letras.";
-    if (name === "apellido_paciente" && !regex.apellido.test(value)) error = "Solo letras.";
-    if (name === "cedula_paciente" && !regex.cedula_paciente.test(value)) error = "11 dígitos.";
+    let err = "";
+    if (name === "nombre_paciente" && !regex.nombre.test(value)) err = "Solo letras.";
+    if (name === "apellido_paciente" && !regex.apellido.test(value))
+      err = "Solo letras.";
+    if (name === "cedula_paciente" && !regex.cedula_paciente.test(value))
+      err = "11 dígitos.";
     if (name === "telefono_paciente" && value && !regex.telefono_paciente.test(value))
-      error = "10 dígitos.";
-
-    setErrors((errs) => ({ ...errs, [name]: error }));
+      err = "10 dígitos.";
+    setErrors((all) => ({ ...all, [name]: err }));
   };
 
   const isFormValid = () =>
@@ -145,21 +145,19 @@ export default function Pacientes({
     form.cedula_paciente &&
     form.edad_paciente;
 
+  // Envío de datos (POST o PUT)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isFormValid()) return;
+    setLoading(true);
+    setSubmitError("");
 
     const token = getToken();
-    const isEdit = Boolean(paciente && paciente.id);
     let url = isEdit
       ? `${API_URL}/api/editpaciente/${paciente.id}`
       : `${API_URL}/api/paciente`;
-
     if (forceError) url += "?force_error=true";
-
     const method = isEdit ? "PUT" : "POST";
-    setLoading(true);
-    setSubmitError("");
 
     const payload = {
       nombre_paciente: form.nombre_paciente,
@@ -169,7 +167,7 @@ export default function Pacientes({
       fecha_nacimiento: form.fecha_nacimiento
         ? new Date(form.fecha_nacimiento).toISOString().split("T")[0]
         : null,
-      id_aseguradora: parseInt(form.seguros, 10),
+      id_aseguradora: form.seguros ? parseInt(form.seguros, 10) : null,
       poliza_paciente: form.poliza_paciente,
     };
 
@@ -182,37 +180,16 @@ export default function Pacientes({
         },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) {
         const text = await res.text();
-
-        if (text.toLowerCase().includes("cédula inválida")) {
-          alert("La cédula ingresada no es válida.");
-          throw new Error("Cédula inválida");
-        }
-
         throw new Error(text);
       }
-
       await res.json();
-
-      if (onPacienteGuardado) onPacienteGuardado();
-
-      setShowModule(false);
-      setPaciente({});
-      setForm({
-        nombre_paciente: "",
-        apellido_paciente: "",
-        cedula_paciente: "",
-        telefono_paciente: "",
-        edad_paciente: "",
-        fecha_nacimiento: "",
-        seguros: "",
-        poliza_paciente: "",
-      });
-      setErrors({});
+      props.onPacienteGuardado?.();
+      props.onClose?.();
+      props.setPaciente?.({});
     } catch (err) {
-      console.error("Error enviando paciente:", err);
+      console.error(err);
       setSubmitError(err.message || "Error desconocido");
     } finally {
       setLoading(false);
@@ -220,19 +197,15 @@ export default function Pacientes({
   };
 
   return (
-    <div className={`container-popup ${moduleAnimation ? "open" : "close"}`}>
+    <div className={`container-popup ${props.moduleAnimation ? "open" : "close"}`}>
       <Draggable nodeRef={dragRef} handle=".pacientes-titulo">
         <div className="draggable-wrapper" ref={dragRef}>
           <form onSubmit={handleSubmit} className="container-paciente">
             <h1 className="pacientes-titulo">
-              {paciente && paciente.id ? "Editar paciente" : "Datos del paciente"}
+              {isEdit ? "Editar paciente" : "Agregar paciente"}
             </h1>
 
-            {submitError && (
-              <div className="error-message" style={{ marginBottom: "1rem" }}>
-                ⚠️ {submitError}
-              </div>
-            )}
+            {submitError && <div className="error-message">⚠️ {submitError}</div>}
 
             <div className="container-datos">
               <div className="container-datos-pacientes">
@@ -245,31 +218,24 @@ export default function Pacientes({
                   ["edad_paciente", "Edad"],
                 ].map(([field, label]) => (
                   <div key={field}>
-                    <label
-                      htmlFor={field}
-                      className="paciente-label"
-                      style={field === "edad_paciente" ? { opacity: "0" } : {}}
-                    >
+                    <label htmlFor={field} className="paciente-label">
                       {label}:
                     </label>
                     <input
                       id={field}
                       name={field}
-                      type={
-                        field === "fecha_nacimiento"
-                          ? "date"
-                          : field === "edad_paciente"
-                          ? "number"
-                          : "text"
-                      }
+                      type={field === "fecha_nacimiento" ? "date" : "text"}
                       value={form[field]}
-                      placeholder={`Ingrese ${label.toLowerCase()}`}
-                      className={errors[field] ? "paciente-input error-input" : "paciente-input"}
                       onChange={handleInputChange}
                       readOnly={field === "edad_paciente"}
-                      style={field === "edad_paciente" ? { opacity: 0 } : {}}
+                      className={`paciente-input ${
+                        errors[field] ? "error-input" : ""
+                      }`}
+                      style={field === "edad_paciente" ? { opacity: 0.6 } : {}}
                     />
-                    {errors[field] && <p className="error-message">{errors[field]}</p>}
+                    {errors[field] && (
+                      <p className="error-message">{errors[field]}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -282,8 +248,8 @@ export default function Pacientes({
                   id="seguros"
                   name="seguros"
                   value={form.seguros}
-                  className="seguros-container"
                   onChange={handleInputChange}
+                  className="seguros-container"
                 >
                   <option value="">Seleccione un seguro</option>
                   {aseguradoras.map((a) => (
@@ -301,9 +267,8 @@ export default function Pacientes({
                   name="poliza_paciente"
                   type="text"
                   value={form.poliza_paciente}
-                  placeholder="Número de póliza"
-                  className="paciente-input"
                   onChange={handleInputChange}
+                  className="paciente-input"
                 />
               </div>
             </div>
@@ -316,14 +281,14 @@ export default function Pacientes({
               >
                 {isLoading
                   ? "Cargando..."
-                  : paciente && paciente.id
+                  : isEdit
                   ? "Guardar cambios"
                   : "Agregar"}
               </button>
               <button
                 type="button"
                 className="close-popup-btn"
-                onClick={() => setShowModule(false)}
+                onClick={() => props.onClose?.()}
               >
                 X
               </button>

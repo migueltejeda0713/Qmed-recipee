@@ -45,8 +45,7 @@ func GetPolizaByPaciente(w http.ResponseWriter, r *http.Request) {
     
     dbConn := db.InitDB()
     defer dbConn.Close()
-    log.Printf("[GetPolizaByPaciente] Conexión a DB establecida")
-
+    
     
     query := `
       SELECT 

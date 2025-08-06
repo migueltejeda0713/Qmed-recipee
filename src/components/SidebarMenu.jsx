@@ -23,7 +23,7 @@ import { logout } from "../utils/auth";
 export default function SidebarMenu() {
   const navigate = useNavigate();
   const location = useLocation();
-  const currentLocation = useMemo(() => location, []); // 👈 Fijamos la location inicial
+  const currentLocation = useMemo(() => location, []);
 
   const iconStyle = { color: "#0d6efd" };
 
@@ -41,7 +41,7 @@ export default function SidebarMenu() {
               <ListOrdered size={16} style={iconStyle} /> Lista de pacientes
             </span>
           ),
-          command: () => navigate("/listpacients"),
+          command: () => navigate("/list-pacients"),
         },
         {
           label: (
@@ -75,7 +75,7 @@ export default function SidebarMenu() {
               <ListOrdered size={16} style={iconStyle} /> Listado de recetas
             </span>
           ),
-          command: () => navigate("/listrecetas"),
+          command: () => navigate("/list-recipes"),
         },
       ],
     },
@@ -89,11 +89,19 @@ export default function SidebarMenu() {
         {
           label: (
             <span className="menu-label">
+              <ListOrdered size={16} style={iconStyle} /> Lista de laboratorios
+            </span>
+          ),
+          command: () => navigate("/list-laboratories"),
+        },
+        {
+          label: (
+            <span className="menu-label">
               <PlusCircle size={16} style={iconStyle} /> Agregar laboratorio
             </span>
           ),
           command: () =>
-            navigate("/laboratorios/add", { state: { background: currentLocation } }),
+            navigate("/addlaboratorio", { state: { background: currentLocation } }),
         },
       ],
     },
@@ -110,7 +118,7 @@ export default function SidebarMenu() {
               <ListOrdered size={16} style={iconStyle} /> Lista de componentes
             </span>
           ),
-          command: () => navigate("/componentes"),
+          command: () => navigate("/list-componentes"),
         },
         {
           label: (
@@ -136,7 +144,7 @@ export default function SidebarMenu() {
               <ClipboardList size={16} style={iconStyle} /> Lista de medicamentos
             </span>
           ),
-          command: () => navigate("/medicamentos"),
+          command: () => navigate("/list-medicines"),
         },
         {
           label: (

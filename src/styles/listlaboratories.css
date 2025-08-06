@@ -1,0 +1,169 @@
+/* Contenedor principal de la lista: fondo blanco y sombra */
+.list-laboratorios {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 2rem auto;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+
+/* Encabezado de lista (título + botones) */
+.header-list-laboratorios {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #c8dcf0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.laboratorio-titulo {
+  font-size: 2.3rem;
+  color: #1e293b;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Estilos generales de botones */
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  text-align: center; 
+  font-size: 1rem;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+/* Botón agregar */
+.btn-addLaboratorio {
+  background-color: #3b82f6;
+  color: white;
+}
+.btn-addLaboratorio::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-80%);
+  font-size: 1.8em;
+  color: white;
+}
+/* Edición, eliminación y ver */
+.btn-edit {
+  background-color: #4ade80;
+  color: #f1f5f9;
+  font-weight: 600;
+}
+.btn-delete {
+  background-color: #ef4444;
+  color: white;
+  font-weight: 600;
+}
+.btn-delete:hover {
+  background-color: #ef2433;
+}
+.btn-view {
+  background-color: #e9e512;
+  color: white;
+  font-weight: 600;
+}
+
+/* Buscador */
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  position: relative;
+}
+.search-input {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  width: 300px;
+  font-size: 1rem;
+  color: #334155;
+  transition: all 0.3s ease;
+}
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+  outline: none;
+}
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* “Ver más” */
+.btn-more-container {
+  text-align: center;
+  margin-top: 1rem;
+}
+.btn-more {
+  width: 100%;
+  max-width: 200px;
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* ========== TABLA ========== */
+
+.laboratorios-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+/* Celdas blancas por defecto */
+.laboratorios-table th,
+.laboratorios-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  background-color: #ffffff;
+  color: #334155;
+}
+
+/* Encabezado */
+.laboratorios-table th {
+  background-color: #f1f5f9;
+  font-weight: 600;
+  color: #1e293b;
+  text-transform: uppercase;
+}
+
+/* Filas pares (zebra) */
+.laboratorios-table tr:nth-child(even) td {
+  background-color: #f8fafc;
+}
+
+/* Hover sobre fila */
+.laboratorios-table tr:hover td {
+  background-color: #edf2f7;
+}
+
+/* Celda de acciones: centrado de botones */
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import { API_URL } from "../utils/api";
-import logo from "../imgs/logo.jpg";
+import logo from "../imgs/Logo.jpg";
 import axios from "axios";
 import { saveToken, isAuthenticated } from "../utils/auth";
 

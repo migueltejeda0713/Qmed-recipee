@@ -8,16 +8,12 @@ import (
 	"Qmed-Recipe/db"
 )
 
-// Esperamos recibir JSON: { "nombre": "Mi componente" }
 type createComponenteRequest struct {
 	Nombre string `json:"nombre"`
 }
 
 func CreateComponente(w http.ResponseWriter, r *http.Request) {
-	// CORS
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)

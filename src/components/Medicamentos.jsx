@@ -68,7 +68,7 @@ export default function Medicamentos({
     }
     setErrors({});
     setSubmitError("");
-  }, [medicamento?.id_medicamento]); // ✅ clave para evitar bucle infinito
+  }, [medicamento?.id_medicamento]); 
 
   const handleInputChange = e => {
     const { name, value } = e.target;

@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+
+import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -17,134 +18,142 @@ import Laboratorios from "./components/Laboratory";
 import ListComponents from "./components/List-Components";
 import ComponentModal from "./components/component";
 import Medicamentos from "./components/Medicamentos";
-import { isAuthenticated } from "./utils/auth";
+import ListLaboratories from "./components/List-Laboratories";
+import ListMedicines from "./components/List-medications";
+import ListRecipes from "./components/List-Recipes";
 
+import { isAuthenticated } from "./utils/auth";
 import "./styles/App.css";
 
-function AppContent() {
-  const location = useLocation();
+
+function ModalRoutes({ paciente, setPaciente }) {
   const navigate = useNavigate();
+
+  return (
+    <Routes>
+      <Route
+        path="/addpacient"
+        element={
+          <Pacientes
+            paciente={paciente}
+            setPaciente={setPaciente}
+            moduleAnimation={true}
+            onPacienteGuardado={() => navigate(-1)}
+            onClose={() => navigate(-1)}
+          />
+        }
+      />
+      <Route
+        path="/editpacient"
+        element={
+          <Pacientes
+            paciente={paciente}
+            setPaciente={setPaciente}
+            moduleAnimation={true}
+            onPacienteGuardado={() => navigate(-1)}
+            onClose={() => navigate(-1)}
+          />
+        }
+      />
+      <Route
+        path="/laboratorios/add"
+        element={
+          <Laboratorios
+            showModule={true}
+            setShowModule={() => navigate(-1)}
+            onLaboratorioGuardado={() => navigate(-1)}
+            moduleAnimation={true}
+          />
+        }
+      />
+      <Route
+        path="/componentes/add"
+        element={<ComponentModal moduleAnimation={true} onClose={() => navigate(-1)} />}
+      />
+      <Route
+        path="/medicamentos/add"
+        element={
+          <Medicamentos
+            medicamento={{}}
+            setShowModule={() => navigate(-1)}
+            moduleAnimation={true}
+            onMedicamentoGuardado={() => navigate(-1)}
+          />
+        }
+      />
+      <Route
+        path="/medicamentos/edit"
+        element={
+          <Medicamentos
+            medicamento={{}}
+            setShowModule={() => navigate(-1)}
+            moduleAnimation={true}
+            onMedicamentoGuardado={() => navigate(-1)}
+          />
+        }
+      />
+    </Routes>
+  );
+}
+
+
+function ProtectedRoutes({ paciente, setPaciente }) {
+  const location = useLocation();
   const backgroundLocation = location.state?.background;
-  const emptyMedicamento = useMemo(() => ({}), []);
-
-  // Estado para controlar modal y paciente seleccionado
-  const [showModule, setShowModule] = useState(false);
-  const [paciente, setPaciente] = useState(null);
-
-  const isLoginPage = location.pathname === "/login";
-  const isAuth = isAuthenticated();
-
-  // Control de acceso y redirección
-  if (!isAuth && !isLoginPage) return <Navigate to="/login" replace />;
-  if (isLoginPage && !isAuth)
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-      </Routes>
-    );
-  if (isLoginPage && isAuth) return <Navigate to="/" replace />;
-
-  // Rutas que deben renderizarse como modales (aquí igual puedes mantener para otros modales)
-  const modalRoutes = [
-    "/addpacient",
-    "/editapacient",
-    "/laboratorios/add",
-    "/componentes/add",
-    "/medicamentos/add",
-    "/medicamentos/edit",
-  ];
-
-  const isModalRoute = modalRoutes.includes(location.pathname);
 
   return (
     <div className="layout">
       <aside className="sidebar-wrapper">
         <SidebarMenu />
       </aside>
-
       <main className="main-content">
         <Routes location={backgroundLocation || location}>
-          <Route
-            path="/listpacients"
-            element={
-              <ListaPacientes
-                setShowModule={setShowModule}
-                setPaciente={setPaciente}
-              />
-            }
-          />
           <Route path="/" element={<RecetaForm />} />
-          <Route path="/componentes" element={<ListComponents />} />
-          <Route path="/medicamentos" element={<Medicamentos />} />
-          <Route path="*" element={<div>Seleccione una opción del menú</div>} />
+          <Route
+            path="/list-pacients"
+            element={<ListaPacientes setPaciente={setPaciente} />}
+          />
+          <Route path="/list-componentes" element={<ListComponents />} />
+          <Route path="/list-recipes" element={<ListRecipes />} />
+          <Route path="/list-medicines" element={<ListMedicines />} />
+          <Route path="/list-laboratories" element={<ListLaboratories/>}/>
+          <Route path="*" element={<RecetaForm />} />
         </Routes>
 
-        {/* Modal para agregar o editar paciente */}
-        {showModule && (
-          <Pacientes
-            paciente={paciente || {}}
-            setPaciente={setPaciente}
-            setShowModule={setShowModule}
-            moduleAnimation={true}
-            onPacienteGuardado={() => {
-              setShowModule(false);
-              setPaciente(null);
-              // Aquí podrías hacer refresh o cualquier otra acción
-            }}
-          />
-        )}
-
-        {/* Otros modales que usen rutas se pueden mantener así si quieres */}
-        {isModalRoute && (
-          <Routes>
-            <Route
-              path="/laboratorios/add"
-              element={
-                <Laboratorios
-                  showModule={true}
-                  setShowModule={() => navigate(-1)}
-                  onLaboratorioGuardado={() => navigate(-1)}
-                  moduleAnimation={true}
-                />
-              }
-            />
-            <Route
-              path="/componentes/add"
-              element={
-                <ComponentModal
-                  moduleAnimation={true}
-                  onClose={() => navigate(-1)}
-                />
-              }
-            />
-            <Route
-              path="/medicamentos/add"
-              element={
-                <Medicamentos
-                  medicamento={emptyMedicamento}
-                  setShowModule={() => navigate(-1)}
-                  moduleAnimation={true}
-                  onMedicamentoGuardado={() => navigate(-1)}
-                />
-              }
-            />
-            <Route
-              path="/medicamentos/edit"
-              element={
-                <Medicamentos
-                  medicamento={emptyMedicamento}
-                  setShowModule={() => navigate(-1)}
-                  moduleAnimation={true}
-                  onMedicamentoGuardado={() => navigate(-1)}
-                />
-              }
-            />
-          </Routes>
-        )}
+        {backgroundLocation && <ModalRoutes paciente={paciente} setPaciente={setPaciente} />}
       </main>
     </div>
   );
 }
+
+function AppContent() {
+  const [paciente, setPaciente] = useState(null);
+  const location = useLocation();
+  const backgroundLocation = location.state?.background;
+
+  const isLoginPage = location.pathname === "/login";
+  const isAuth = isAuthenticated();
+
+  if (!isAuth && !isLoginPage) return <Navigate to="/login" replace />;
+  if (isAuth && isLoginPage) return <Navigate to="/" replace />;
+
+  return (
+    <>
+      <Routes location={backgroundLocation || location}>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/*"
+          element={<ProtectedRoutes paciente={paciente} setPaciente={setPaciente} />}
+        />
+      </Routes>
+
+      {backgroundLocation && (
+        <ModalRoutes paciente={paciente} setPaciente={setPaciente} />
+      )}
+    </>
+  );
+}
+
 
 export default function App() {
   return (

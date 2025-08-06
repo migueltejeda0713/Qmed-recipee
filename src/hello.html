@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📘 Documentación Angular – App de Tareas por Categoría</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== Reset y Global ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body { font-family: 'Roboto', sans-serif; background: #fafafa; color: #333; line-height: 1.6; }
+    a { color: #1976d2; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    pre, code { font-family: 'Fira Code', monospace; background: #f5f5f5; border-radius: 4px; }
+    pre { padding: 1rem; overflow-x: auto; margin: 1rem 0; background: #f0f0f0; }
+
+    /* ===== Layout ===== */
+    .container { display: flex; max-width: 1300px; margin: auto; padding: 2rem; gap: 2rem; }
+    nav.toc { flex: 0 0 260px; position: sticky; top: 2rem; align-self: flex-start; }
+    nav.toc h2 { font-size: 1.25rem; font-weight: 500; margin-bottom: 1rem; }
+    nav.toc ul { list-style: none; padding-left: 0; }
+    nav.toc li { margin-bottom: 0.5rem; }
+    nav.toc a { color: #444; font-weight: 500; }
+
+    main.content { flex: 1; }
+    section { margin-bottom: 3rem; }
+    h1 { font-size: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #1976d2; padding-bottom: 0.5rem; }
+    h2 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+    h3 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    p { margin-bottom: 1rem; }
+    ul, ol { margin: 1rem 0 1rem 2rem; }
+
+    .note { background: #e3f2fd; padding: 1rem; border-left: 5px solid #1976d2; margin: 1rem 0; }
+    .highlight { background: #fff3cd; padding: 0.2rem 0.4rem; border-radius: 4px; }
+
+    @media (max-width: 768px) {
+      .container { flex-direction: column; padding: 1rem; gap: 1rem; }
+      nav.toc { position: static; width: 100%; margin-bottom: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="toc">
+      <h2>Contenido</h2>
+      <ul>
+        <li><a href="#introduccion">Introducción</a></li>
+        <li><a href="#objetivo">Objetivo</a></li>
+        <li><a href="#instalacion">Instalación</a></li>
+        <li><a href="#estructura">Estructura</a></li>
+        <li><a href="#models">Modelos</a></li>
+        <li><a href="#signals">Signals</a></li>
+        <li><a href="#storage-service">StorageService</a></li>
+        <li><a href="#tarea-item">TareaItemComponent</a></li>
+        <li><a href="#tareas-component">TareasComponent</a></li>
+        <li><a href="#rutas-hijas">Rutas Hijas</a></li>
+        <li><a href="#inputs-outputs">Inputs & Outputs</a></li>
+        <li><a href="#solid">Principios SOLID</a></li>
+        <li><a href="#testing">Pruebas Unitarias</a></li>
+        <li><a href="#e2e">Pruebas E2E</a></li>
+        <li><a href="#despliegue">Despliegue</a></li>
+        <li><a href="#performance">Rendimiento</a></li>
+        <li><a href="#mejoras">Mejoras Futuras</a></li>
+        <li><a href="#accessibilidad">Accesibilidad</a></li>
+        <li><a href="#experiencia">UX</a></li>
+        <li><a href="#seo">SEO</a></li>
+        <li><a href="#resumen-final">Resumen Final</a></li>
+        <li><a href="#agradecimientos">Agradecimientos</a></li>
+        <li><a href="#feedback">Feedback</a></li>
+        <li><a href="#changelog">Changelog</a></li>
+        <li><a href="#referencias">Referencias</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <section id="introduccion">
+        <h1>Introducción</h1>
+        <p>Bienvenido a la documentación completa de la App de Tareas por Categoría en Angular. Aquí aprenderás a usar todas las características de Angular de forma práctica y profesional.</p>
+        <div class="note">Este documento es autocontenible: incluye todo el HTML y CSS necesario.</div>
+      </section>
+
+      <section id="objetivo">
+        <h2>Objetivo</h2>
+        <p>Crear una aplicación que permita gestionar tareas clasificadas por categorías, aplicando:</p>
+        <ul>
+          <li>Signals para estado reactivo.</li>
+          <li>Rutas hijas para navegación anidada.</li>
+          <li>Inyección de dependencias con servicios.</li>
+          <li>Principio de responsabilidad única (SOLID).</li>
+          <li>Inputs y Outputs para comunicación entre componentes.</li>
+          <li>Persistencia con LocalStorage.</li>
+        </ul>
+      </section>
+
+      <section id="instalacion">
+        <h2>Instalación</h2>
+        <ol>
+          <li>Instala Angular CLI: <code>npm install -g @angular/cli</code></li>
+          <li>Genera el proyecto: <code>ng new tarea-app --routing --standalone --style=scss</code></li>
+          <li>Accede al proyecto: <code>cd tarea-app</code></li>
+          <li>Instala dependencias: <code>npm install</code></li>
+          <li>Inicia el servidor: <code>ng serve --open</code></li>
+        </ol>
+      </section>
+
+      <section id="estructura">
+        <h2>Estructura del Proyecto</h2>
+        <pre><code>src/app/
+├── core/
+│   └── storage.service.ts
+├── models/
+│   ├── categoria.model.ts
+│   └── tarea.model.ts
+├── components/
+│   └── tarea-item/
+│       ├── tarea-item.component.ts
+│       └── tarea-item.component.html
+├── pages/
+│   └── categorias/
+│       ├── categoria.component.ts
+│       ├── categoria.routes.ts
+│       └── tareas/
+│           └── tareas.component.ts
+└── app.routes.ts</code></pre>
+      </section>
+
+      <section id="models">
+        <h2>Modelos</h2>
+        <h3>Categoria</h3>
+        <pre><code>export interface Categoria {
+  id: string;
+  nombre: string;
+}</code></pre>
+        <h3>Tarea</h3>
+        <pre><code>export interface Tarea {
+  id: string;
+  titulo: string;
+  completada: boolean;
+  categoriaId: string;
+}</code></pre>
+      </section>
+
+      <section id="signals">
+        <h2>Signals</h2>
+        <p>Señales reactivas para manejo de estado sin RxJS:</p>
+        <pre><code>import { signal } from '@angular/core';
+const tareas = signal&lt;Tarea[]&gt;([]);
+</code></pre>
+      </section>
+
+      <section id="storage-service">
+        <h2>StorageService</h2>
+        <p>Servicio que usa signals y LocalStorage:</p>
+        <pre><code>@Injectable({ providedIn: 'root' })
+export class StorageService {
+  private tareasSignal = signal&lt;Tarea[]&gt;(this.getFromStorage());
+
+  private getFromStorage(): Tarea[] {
+    return JSON.parse(localStorage.getItem('tareas') || '[]');
+  }
+
+  addTarea(t: Tarea) {
+    const updated = [...this.tareasSignal(), t];
+    this.tareasSignal.set(updated);
+    localStorage.setItem('tareas', JSON.stringify(updated));
+  }
+}
+</code></pre>
+      </section>
+
+      <section id="tarea-item">
+        <h2>TareaItemComponent</h2>
+        <pre><code>@Component({
+  selector: 'app-tarea-item',
+  template: `...`,
+})
+export class TareaItemComponent {
+  @Input() tarea!: Tarea;
+  @Output() toggle = new EventEmitter&lt;string&gt;();
+  @Output() eliminar = new EventEmitter&lt;string&gt;();
+}
+</code></pre>
+        <p>Emite eventos al hacer clic en los botones para alternar/eliminar.</p>
+      </section>
+
+      <section id="tareas-component">
+        <h2>TareasComponent</h2>
+        <p>Filtra y muestra tareas de la categoría actual:</p>
+        <pre><code>@Component({ /* ... */ })
+export class TareasComponent {
+  categoriaId = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
+  storage = inject(StorageService);
+
+  tareasFiltradas() {
+    return this.storage.tareas().filter(t =&gt; t.categoriaId === this.categoriaId);
+  }
+}
+</code></pre>
+      </section>
+
+      <section id="rutas-hijas">
+        <h2>Rutas Hijas</h2>
+        <pre><code>export const categoriaRoutes: Routes = [
+  {
+    path: 'categoria/:id',
+    component: CategoriaComponent,
+    children: [
+      { path: '', component: TareasComponent }
+    ]
+  }
+];
+export const routes: Routes = [...categoriaRoutes, { path: '**', redirectTo: 'categoria/1' }];
+</code></pre>
+      </section>
+
+      <section id="inputs-outputs">
+        <h2>Inputs & Outputs</h2>
+        <p>Comunicación clara entre padre e hijo:</p>
+        <pre><code>@Input() tarea; @Output() toggle = new EventEmitter<string>();
+</code></pre>
+      </section>
+
+      <section id="solid">
+        <h2>Principios SOLID</h2>
+        <ul>
+          <li>S: Una sola responsabilidad por clase/componente.</li>
+          <li>O: Extensible sin modificar base.</li>
+          <li>L: Sustitución de Liskov.</li>
+          <li>I: Interfaces específicas.</li>
+          <li>D: Inversión de dependencias.</li>
+        </ul>
+      </section>
+
+      <section id="testing">
+        <h2>Pruebas Unitarias</h2>
+        <pre><code>describe('StorageService', () =&gt; {
+  it('debe agregar tarea', () =&gt; {
+    service.addTarea(...);
+    expect(service.tareas().length).toBe(1);
+  });
+});
+</code></pre>
+      </section>
+
+      <section id="e2e">
+        <h2>Pruebas E2E</h2>
+        <pre><code>describe('Lista de Tareas', () =&gt; {
+  it('agrega tarea', () =&gt; {
+    cy.visit('/');
+    cy.get('input').type('Tarea E2E');
+    cy.contains('Agregar').click();
+  });
+});
+</code></pre>
+      </section>
+
+      <section id="despliegue">
+        <h2>Despliegue</h2>
+        <ul>
+          <li><code>ng build --prod</code></li>
+          <li>Subir <code>/dist/tarea-app</code> a hosting estático.</li>
+        </ul>
+      </section>
+
+      <section id="performance">
+        <h2>Rendimiento</h2>
+        <ul>
+          <li>ChangeDetectionStrategy.OnPush.</li>
+          <li>trackBy en ngFor.</li>
+          <li>Lazy loading de módulos.</li>
+        </ul>
+      </section>
+
+      <section id="mejoras">
+        <h2>Mejoras Futuras</h2>
+        <ul>
+          <li>Autenticación JWT.</li>
+          <li>Notificaciones push.</li>
+          <li>Internacionalización (i18n).</li>
+          <li>WebSockets para tiempo real.</li>
+        </ul>
+      </section>
+
+      <section id="accessibilidad">
+        <h2>Accesibilidad (a11y)</h2>
+        <ul>
+          <li>Roles semánticos.</li>
+          <li>Contraste óptimo.</li>
+          <li>Navegación por teclado.</li>
+          <li>aria-label en botones.</li>
+        </ul>
+      </section>
+
+      <section id="experiencia">
+        <h2>Experiencia de Usuario (UX)</h2>
+        <ul>
+          <li>Interfaz minimalista.</li>
+          <li>Confirmaciones claras.</li>
+          <li>Transiciones suaves.</li>
+        </ul>
+      </section>
+
+      <section id="seo">
+        <h2>SEO</h2>
+        <ul>
+          <li>URLs semánticas.</li>
+          <li>Encabezados bien jerarquizados.</li>
+          <li>Angular Universal para SSR.</li>
+        </ul>
+      </section>
+
+      <section id="resumen-final">
+        <h2>Resumen Final</h2>
+        <p>Ejemplo práctico y profesional de aplicación Angular con mejores prácticas.</p>
+      </section>
+
+      <section id="agradecimientos">
+        <h2>Agradecimientos</h2>
+        <p>Gracias a la comunidad Angular por su soporte y documentación.</p>
+      </section>
+
+      <section id="feedback">
+        <h2>Feedback</h2>
+        <p>Envía tus comentarios a <a href="mailto:feedback@miappangular.dev">feedback@miappangular.dev</a>.</p>
+      </section>
+
+      <section id="changelog">
+        <h2>Changelog</h2>
+        <ul>
+          <li><strong>v1.0.0</strong>: Versión inicial.</li>
+          <li><strong>v1.1.0</strong>: Agregadas pruebas.</li>
+          <li><strong>v1.2.0</strong>: Documentación mejorada.</li>
+        </ul>
+      </section>
+
+      <section id="referencias">
+        <h2>Referencias</h2>
+        <ul>
+          <li><a href="https://angular.io/docs" target="_blank">Angular Official Docs</a></li>
+          <li><a href="https://developer.mozilla.org/" target="_blank">MDN Web Docs</a></li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
