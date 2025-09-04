@@ -23,7 +23,7 @@
 }
 
 .login-title {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
   color: #333;
@@ -44,30 +44,52 @@
   font-size: 1rem;
 }
 
+/* Aplicando efecto liquid glass sutil al botón principal */
 .login-button {
-  background-color: #007bff;
+  background: rgba(0, 123, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 123, 255, 0.2);
   color: white;
   width: 100%;
   padding: 0.9rem;
-  border: none;
   border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
 }
 
 .login-button:hover {
-  background-color: #0056b3;
+  background: rgba(0, 86, 179, 0.9);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(0, 86, 179, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+  transform: translateY(-1px);
 }
 
+/* Aplicando efecto liquid glass sutil al enlace forgot-password */
 .forgot-password {
   display: block;
   margin-top: 1rem;
   font-size: 0.9rem;
   color: #007bff;
   text-decoration: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: rgba(0, 123, 255, 0.05);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(0, 123, 255, 0.1);
+  transition: all 0.2s ease;
 }
 
 .forgot-password:hover {
-  text-decoration: underline;
+  text-decoration: none;
+  background: rgba(0, 123, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 123, 255, 0.15);
+  transform: translateY(-0.5px);
 }

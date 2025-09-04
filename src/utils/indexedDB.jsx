@@ -24,6 +24,26 @@ export async function savePacientes(pacientes) {
   await tx.done;
 }
 
+
+
+
+
+export async function getAllLaboratorios() {
+  const cached = localStorage.getItem("laboratorios");
+  return cached ? JSON.parse(cached) : [];
+}
+
+export async function saveLaboratorios(labs) {
+  localStorage.setItem("laboratorios", JSON.stringify(labs));
+}
+
+export async function deleteLaboratorioIndexed(id) {
+  const labs = await getAllLaboratorios();
+  const updated = labs.filter(l => l.id !== id);
+  localStorage.setItem("laboratorios", JSON.stringify(updated));
+}
+
+
 export async function getAllPacientes() {
   const db = await getDB();
   return db.getAll(STORE_NAME);

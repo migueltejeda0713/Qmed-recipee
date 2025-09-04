@@ -8,6 +8,8 @@ import React, {
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/listlaboratories.css";
 import Loading from "./Loading";
+
+import { getAllLaboratorios, saveLaboratorios, deletePacienteIndexed } from "../utils/indexedDB";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
 import EditIcon from "../svg/edit-3-svgrepo-com.svg";
 import ViewIcon from "../svg/zoom-in-svgrepo-com.svg";
@@ -52,7 +54,7 @@ const ListLaboratories = forwardRef((props, ref) => {
 
     try {
       const res = await fetch(
-        `${API_URL}/api/laboratorios_pag?page=${nextPage}&limit=10`,
+        `${API_URL}/api/getlaboratorios`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -247,7 +249,7 @@ const ListLaboratories = forwardRef((props, ref) => {
             </tr>
           ) : (
             laboratoriosToRender.map((laboratorio) => (
-              <tr key={laboratorio.id}>
+              <tr key={laboratorio.id_laboratorio}>
                 <td>{laboratorio.nombre_laboratorio}</td>
                 <td className="actions-cell">
                   <button
