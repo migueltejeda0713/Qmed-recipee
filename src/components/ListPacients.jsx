@@ -256,9 +256,9 @@ const ListPacients = forwardRef((props, ref) => {
             pacientesToRender.map((paciente) => (
               <tr key={paciente.id}>
                 <td>{paciente.name}</td>
-                <td>{paciente.edad}</td>
-                <td>{paciente.cedula}</td>
-                <td>{paciente.telefono}</td>
+                <td>{paciente.age}</td>
+                <td>{paciente.document_id}</td>
+                <td>{paciente.phone}</td>
                 <td className="actions-cell">
                   <button
                     className="btn btn-edit"

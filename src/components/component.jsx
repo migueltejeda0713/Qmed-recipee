@@ -36,7 +36,7 @@ export default function ComponentModal({ onClose, moduleAnimation }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ nombre: form.nombre.trim() }),
+        body: JSON.stringify({ name: form.nombre.trim() }),
       });
       if (!res.ok) throw new Error("Error al agregar componente");
       await res.json();

@@ -36,7 +36,7 @@ export default function ListMedicines({ onAddMedicine, onEditMedicine, onViewMed
     if (term) {
       setFilteredMedicines(
         medicines.filter((m) =>
-          m.nombre_medicamento.toLowerCase().includes(term)
+          m.medicine_name.toLowerCase().includes(term)
         )
       );
     } else {
@@ -110,10 +110,10 @@ export default function ListMedicines({ onAddMedicine, onEditMedicine, onViewMed
             </tr>
           ) : (
             listToRender.map((med) => (
-              <tr key={med.id_medicamento}>
-                <td>{med.nombre_medicamento}</td>
-                <td>{med.nombre_componente}</td>
-                <td>{med.nombre_laboratorio}</td>
+              <tr key={med.id_medicine}>
+                <td>{med.medicine_name}</td>
+                <td>{med.component_name}</td>
+                <td>{med.laboratory_name}</td>
                 <td className="actions-cell">
                   <button className="btn btn-edit" onClick={() => onEditMedicine(med)}>
                     <img src={EditIcon} alt="Edit" width={20} height={20} />

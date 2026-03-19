@@ -3,9 +3,11 @@
 .receta-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto;
   gap: 1.5rem;
-  max-width: 1000px;
-  margin: 2rem auto;
+  width: 100%;
+  flex: 1;
+  margin: 0;
   padding: 2rem;
   background: #fff;
   border-radius: 16px;

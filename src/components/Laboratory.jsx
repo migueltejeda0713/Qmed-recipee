@@ -45,7 +45,7 @@ export default function Laboratorios({
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ nombre_laboratorio: form.nombre_laboratorio.trim() }),
+        body: JSON.stringify({ laboratory_name: form.nombre_laboratorio.trim() }),
       });
       if (!res.ok) throw new Error(await res.text());
       await res.json();

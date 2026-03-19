@@ -68,8 +68,8 @@ export default function RecetaForm() {
     setPatient({
       id: p.id || "",
       nombre: p.name || "",
-      fechaNacimiento: p.fechaNacimiento || "",
-      documento: p.cedula || "",
+      fechaNacimiento: p.birthDate || "",
+      documento: p.document_id || "",
     });
     setShowDropdown(false);
     setSearchResults([]);
@@ -183,7 +183,7 @@ export default function RecetaForm() {
                     className="dropdown-item"
                     onMouseDown={() => handleSelectPaciente(p)}
                   >
-                    {p.name} — {p.cedula}
+                    {p.name} — {p.document_id}
                   </li>
                 ))}
               </ul>

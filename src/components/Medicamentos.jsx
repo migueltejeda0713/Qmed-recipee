@@ -53,11 +53,11 @@ export default function Medicamentos({
   }, []);
 
   useEffect(() => {
-    if (medicamento?.id_medicamento) {
+    if (medicamento?.id_medicine) {
       setForm({
-        nombre_medicamento: medicamento.nombre_medicamento || "",
-        id_componente: String(medicamento.id_componente || ""),
-        id_laboratorio: String(medicamento.id_laboratorio || ""),
+        nombre_medicamento: medicamento.medicine_name || "",
+        id_componente: String(medicamento.id_component || ""),
+        id_laboratorio: String(medicamento.id_laboratory || ""),
       });
     } else {
       setForm({
@@ -68,7 +68,7 @@ export default function Medicamentos({
     }
     setErrors({});
     setSubmitError("");
-  }, [medicamento?.id_medicamento]); 
+  }, [medicamento?.id_medicine]); 
 
   const handleInputChange = e => {
     const { name, value } = e.target;
@@ -99,9 +99,9 @@ export default function Medicamentos({
     setSubmitError("");
 
     const payload = {
-      nombre_medicamento: form.nombre_medicamento.trim(),
-      id_componente: parseInt(form.id_componente, 10),
-      id_laboratorio: parseInt(form.id_laboratorio, 10),
+      medicine_name: form.nombre_medicamento.trim(),
+      id_component: form.id_componente,
+      id_laboratory: form.id_laboratorio,
     };
 
     try {
@@ -136,7 +136,7 @@ export default function Medicamentos({
         <div className="draggable-wrapper" ref={dragRef}>
           <form onSubmit={handleSubmit} className="container-medicamento">
             <h1 className="medicamentos-titulo">
-              {medicamento.id_medicamento ? "Editar medicamento" : "Nuevo medicamento"}
+              {medicamento.id_medicine ? "Editar medicamento" : "Nuevo medicamento"}
             </h1>
 
             {submitError && (
@@ -171,8 +171,8 @@ export default function Medicamentos({
                 >
                   <option value="">-- Seleccione --</option>
                   {componentes.map(c => (
-                    <option key={c.id_componente} value={c.id_componente}>
-                      {c.nombre}
+                    <option key={c.id_component} value={c.id_component}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
@@ -190,8 +190,8 @@ export default function Medicamentos({
                 >
                   <option value="">-- Seleccione --</option>
                   {laboratorios.map(l => (
-                    <option key={l.id_laboratorio} value={l.id_laboratorio}>
-                      {l.nombre_laboratorio}
+                    <option key={l.id_laboratory} value={l.id_laboratory}>
+                      {l.laboratory_name}
                     </option>
                   ))}
                 </select>
@@ -205,7 +205,7 @@ export default function Medicamentos({
                 className={`btn-enviar ${!isFormValid() ? "disabled" : ""}`}
                 disabled={!isFormValid() || isLoading}
               >
-                {isLoading ? "Guardando..." : medicamento.id_medicamento ? "Guardar cambios" : "Agregar"}
+                {isLoading ? "Guardando..." : medicamento.id_medicine ? "Guardar cambios" : "Agregar"}
               </button>
               <button type="button" className="close-popup-btn" onClick={() => setShowModule(false)}>
                 X

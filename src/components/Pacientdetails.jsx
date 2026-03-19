@@ -25,29 +25,29 @@ export default function PacienteDetalleModal({ paciente, setShowDetalle, moduleA
                 <div className="fecha-edad-container">
                   <div>
                     <label className="paciente-label">Fecha nacimiento:</label>
-                    <p className="paciente-input read-only">{paciente.fecha_nacimiento || "N/A"}</p>
+                    <p className="paciente-input read-only">{paciente.birth_date || "N/A"}</p>
                   </div>
                   <div>
                     <label className="paciente-label">Edad:</label>
-                    <p className="paciente-input read-only">{paciente.edad}</p>
+                    <p className="paciente-input read-only">{paciente.age}</p>
                   </div>
                 </div>
                 <div>
                   <label className="paciente-label">Cédula:</label>
-                  <p className="paciente-input read-only">{paciente.cedula}</p>
+                  <p className="paciente-input read-only">{paciente.document_id}</p>
                 </div>
                 <div>
                   <label className="paciente-label">Teléfono:</label>
-                  <p className="paciente-input read-only">{paciente.telefono || "N/A"}</p>
+                  <p className="paciente-input read-only">{paciente.phone || "N/A"}</p>
                 </div>
               </div>
 
               <div className="container-datos-seguro">
                 <label className="paciente-label">Aseguradora:</label>
-                <p className="paciente-input read-only">{paciente.aseguradora || "No especificada"}</p>
+                <p className="paciente-input read-only">{paciente.provider || "No especificada"}</p>
 
                 <label className="paciente-label">Póliza:</label>
-                <p className="paciente-input read-only">{paciente.numero_poliza || "N/A"}</p>
+                <p className="paciente-input read-only">{paciente.policy_number || "N/A"}</p>
               </div>
             </div>
 

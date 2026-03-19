@@ -12,9 +12,9 @@ const getToken = () => localStorage.getItem("token") || "";
 export default function Pacientes(props) {
   const location = useLocation();
   // Normalizar paciente: prioriza props.paciente, luego state, y finalmente un objeto vacío
-  const pacienteProp = props.paciente ?? location.state?.paciente ?? {};
-  const paciente = pacienteProp || {};
-  const isEdit = Boolean(paciente.id);
+  const paciente = props.paciente ?? location.state?.paciente ?? {};
+  const pacienteId = paciente.id;
+  const isEdit = Boolean(pacienteId);
 
   const dragRef = useRef(null);
   const [aseguradoras, setAseguradoras] = useState([]);
@@ -57,7 +57,7 @@ export default function Pacientes(props) {
       headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then((r) => r.json())
-      .then(setAseguradoras)
+      .then((data) => setAseguradoras(data ?? []))
       .catch(console.error);
   }, []);
 
@@ -65,15 +65,15 @@ export default function Pacientes(props) {
   useEffect(() => {
     if (isEdit) {
       const [first, ...rest] = (paciente.name || "").split(" ");
-      const fecha = paciente.fecha_nacimiento || "";
+      const fecha = paciente.birth_date || "";
       setForm({
         nombre_paciente: first,
         apellido_paciente: rest.join(" "),
-        cedula_paciente: paciente.cedula || "",
-        telefono_paciente: paciente.telefono || "",
+        cedula_paciente: paciente.document_id || "",
+        telefono_paciente: paciente.phone || "",
         fecha_nacimiento: fecha,
         edad_paciente: calculateAge(fecha),
-        seguros: paciente.id_aseguradora ? String(paciente.id_aseguradora) : "",
+        seguros: "",
         poliza_paciente: "",
       });
     } else {
@@ -90,7 +90,7 @@ export default function Pacientes(props) {
       setErrors({});
       setSubmitError("");
     }
-  }, [isEdit, paciente]);
+  }, [isEdit, pacienteId]);
 
  
   useEffect(() => {
@@ -102,16 +102,16 @@ export default function Pacientes(props) {
           if (!r.ok) throw new Error("Error cargando póliza");
           return r.json();
         })
-        .then(({ numero_poliza, id_aseguradora }) => {
+        .then(({ policy_number, id_provider }) => {
           setForm((f) => ({
             ...f,
-            poliza_paciente: numero_poliza || "",
-            seguros: id_aseguradora ? String(id_aseguradora) : f.seguros,
+            poliza_paciente: policy_number || "",
+            seguros: id_provider ? String(id_provider) : f.seguros,
           }));
         })
         .catch(console.error);
     }
-  }, [isEdit, paciente.id]);
+  }, [isEdit, pacienteId]);
 
   // Maneja cambios de input y validaciones
   const handleInputChange = (e) => {
@@ -160,15 +160,15 @@ export default function Pacientes(props) {
     const method = isEdit ? "PUT" : "POST";
 
     const payload = {
-      nombre_paciente: form.nombre_paciente,
-      apellido_paciente: form.apellido_paciente,
-      cedula_paciente: form.cedula_paciente,
-      telefono_paciente: form.telefono_paciente,
-      fecha_nacimiento: form.fecha_nacimiento
+      first_name: form.nombre_paciente,
+      last_name: form.apellido_paciente,
+      document_id: form.cedula_paciente,
+      phone: form.telefono_paciente,
+      birth_date: form.fecha_nacimiento
         ? new Date(form.fecha_nacimiento).toISOString().split("T")[0]
         : null,
-      id_aseguradora: form.seguros ? parseInt(form.seguros, 10) : null,
-      poliza_paciente: form.poliza_paciente,
+      id_provider: form.seguros || "",
+      policy_number: form.poliza_paciente,
     };
 
     try {
@@ -253,8 +253,8 @@ export default function Pacientes(props) {
                 >
                   <option value="">Seleccione un seguro</option>
                   {aseguradoras.map((a) => (
-                    <option key={a.id_seguro} value={a.id_seguro}>
-                      {a.nombre_aseguradora}
+                    <option key={a.id_provider} value={a.id_provider}>
+                      {a.provider_name}
                     </option>
                   ))}
                 </select>

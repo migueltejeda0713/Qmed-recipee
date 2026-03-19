@@ -70,7 +70,7 @@ const ListLaboratories = forwardRef((props, ref) => {
           ? data
           : [
               ...prev,
-              ...data.filter((p) => !prev.some((old) => old.id === p.id)),
+              ...data.filter((p) => !prev.some((old) => old.id_laboratory === p.id_laboratory)),
             ]
       );
       setPage(nextPage);
@@ -158,7 +158,7 @@ const ListLaboratories = forwardRef((props, ref) => {
   const handleDelete = async (id) => {
     try {
       await deleteLaboratorioIndexed(id);
-      setLaboratorios((prev) => prev.filter((p) => p.id !== id));
+      setLaboratorios((prev) => prev.filter((p) => p.id_laboratory !== id));
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/api/deletelaboratorio/${id}`, {
         method: "DELETE",
@@ -247,8 +247,8 @@ const ListLaboratories = forwardRef((props, ref) => {
             </tr>
           ) : (
             laboratoriosToRender.map((laboratorio) => (
-              <tr key={laboratorio.id}>
-                <td>{laboratorio.nombre_laboratorio}</td>
+              <tr key={laboratorio.id_laboratory}>
+                <td>{laboratorio.laboratory_name}</td>
                 <td className="actions-cell">
                   <button
                     className="btn btn-edit"
@@ -258,7 +258,7 @@ const ListLaboratories = forwardRef((props, ref) => {
                   </button>
                   <button
                     className="btn btn-delete"
-                    onClick={() => confirmDelete(laboratorio.id)}
+                    onClick={() => confirmDelete(laboratorio.id_laboratory)}
                   >
                     <img
                       src={DeleteIcon}

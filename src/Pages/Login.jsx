@@ -7,7 +7,7 @@ import axios from "axios";
 import { saveToken, isAuthenticated } from "../utils/auth";
 
 export default function Login() {
-  const [correo, setCorreo] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ export default function Login() {
     e.preventDefault();
     try {
       const response = await axios.post(`${API_URL}/api/login`, {
-        correo,
+        email,
         password,
       });
 
@@ -31,8 +31,8 @@ export default function Login() {
       } else {
         setError("Correo o contraseña incorrectos");
       }
-    } catch (err) {
-      setError("Error en el servidor");
+    } catch (error) {
+      setError("Error en el servidor", error);
     }
   };
 
@@ -45,8 +45,8 @@ export default function Login() {
         <input
           type="email"
           placeholder="Correo electrónico"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <input

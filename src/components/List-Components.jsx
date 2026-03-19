@@ -52,7 +52,7 @@ const ListComponents = forwardRef((props, ref) => {
         setHasMore(data.length >= 10);
         setComponents(prev => [
           ...prev,
-          ...data.filter(c => !prev.some(p => p.id_componente === c.id_componente)),
+          ...data.filter(c => !prev.some(p => p.id_component === c.id_component)),
         ]);
       }
       setPage(nextPage);
@@ -123,7 +123,7 @@ const ListComponents = forwardRef((props, ref) => {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (!res.ok) throw new Error();
-          setComponents(prev => prev.filter(c => c.id_componente !== id));
+          setComponents(prev => prev.filter(c => c.id_component !== id));
         } catch {
           alert("Error al eliminar el componente.");
         }
@@ -176,13 +176,13 @@ const ListComponents = forwardRef((props, ref) => {
             </tr>
           ) : (
             toRender.map(c => (
-              <tr key={c.id_componente}>
-                <td>{c.id_componente}</td>
-                <td>{c.nombre}</td>
+              <tr key={c.id_component}>
+                <td>{c.id_component}</td>
+                <td>{c.name}</td>
                 <td className="components-actions-cell">
                   <button
                     className="btn btn-delete"
-                    onClick={() => handleDelete(c.id_componente)}
+                    onClick={() => handleDelete(c.id_component)}
                   >
                     <img
                       src={DeleteIcon}
