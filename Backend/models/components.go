@@ -1,7 +1,6 @@
 package models
 
-// Componente representa la tabla componentes (sin id_doctor por ahora)
-type Componente struct {
-    ID     int    `json:"id_componente"`
-    Nombre string `json:"nombre"`
+type Component struct {
+	ID   string `json:"id_component"`
+	Name string `json:"name"`
 }

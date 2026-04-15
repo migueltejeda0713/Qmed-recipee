@@ -1,7 +1,6 @@
 package models
 
-
-type Aseguradora struct {
-	ID     int    `json:"id_seguro"`
-	Nombre string `json:"nombre_aseguradora"`
+type InsuranceProvider struct {
+	ID   string `json:"id_provider"`
+	Name string `json:"provider_name"`
 }

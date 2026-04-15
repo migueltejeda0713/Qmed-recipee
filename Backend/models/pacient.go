@@ -1,12 +1,12 @@
 package models
 
-type Paciente struct {
-	ID             int64  `json:"id"`
-	Nombre         string `json:"name"`
-	Edad           string `json:"edad"`
-	FechaNacimiento string `json:"fecha_nacimiento"`
-	Cedula         string `json:"cedula"`
-	Telefono       string `json:"telefono"`
-	Aseguradora    string `json:"aseguradora"`
-	NumeroPoliza   string `json:"numero_poliza"`
+type Patient struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Age          string `json:"age"`
+	BirthDate    string `json:"birth_date"`
+	DocumentID   string `json:"document_id"`
+	Phone        string `json:"phone"`
+	Provider     string `json:"provider"`
+	PolicyNumber string `json:"policy_number"`
 }

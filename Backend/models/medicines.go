@@ -1,8 +1,8 @@
 package models
 
-type Medicamento struct {
-	IDMedicamento     int    `json:"id_medicamento"`
-	NombreMedicamento string `json:"nombre_medicamento"`
-	IDComponente      int    `json:"id_componente"`
-	IDLaboratorio     int    `json:"id_laboratorio"`
+type Medicine struct {
+	ID           string `json:"id_medicine"`
+	MedicineName string `json:"medicine_name"`
+	IDComponent  string `json:"id_component"`
+	IDLaboratory string `json:"id_laboratory"`
 }

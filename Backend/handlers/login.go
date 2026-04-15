@@ -1,4 +1,3 @@
-// reemplaza completamente el archivo
 package handlers
 
 import (
@@ -17,43 +16,42 @@ func LoginDoctor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	var creds models.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		http.Error(w, "JSON inválido: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	database := db.InitDB()
 	defer database.Close()
 
-	var id int
+	var idBytes []byte
 	err := database.QueryRow(`
-		SELECT id_doctor FROM doctor 
-		WHERE correo = ? AND password = ?`,
-		creds.Correo, creds.Password,
-	).Scan(&id)
+		SELECT BIN_TO_UUID(id_doctor, TRUE) FROM doctor
+		WHERE email = ? AND password = ?`,
+		creds.Email, creds.Password,
+	).Scan(&idBytes)
 
 	if err == sql.ErrNoRows {
-		http.Error(w, "Correo o contraseña incorrectos", http.StatusUnauthorized)
+		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 		return
 	} else if err != nil {
-		log.Printf("Error en consulta login: %v", err)
-		http.Error(w, "Error en servidor ", http.StatusInternalServerError,)
+		log.Printf("Login query error: %v", err)
+		http.Error(w, "Server error", http.StatusInternalServerError)
 		return
 	}
 
-	jwt, err := middleware.GenerateJWT(creds.Correo)
+	jwt, err := middleware.GenerateJWT(creds.Email)
 	if err != nil {
-		http.Error(w, "Error generando token", http.StatusInternalServerError)
+		http.Error(w, "Error generating token", http.StatusInternalServerError)
 		return
 	}
 
 	response := map[string]interface{}{
 		"success": true,
 		"token":   jwt,
-		"id":      id,
-		"correo":  creds.Correo,
+		"id":      string(idBytes),
+		"email":   creds.Email,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

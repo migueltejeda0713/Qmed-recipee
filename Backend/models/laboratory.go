@@ -1,6 +1,6 @@
 package models
 
 type Laboratory struct {
-  ID int `json:"id_laboratorio"`
-  Nombre string `json:"nombre_laboratorio"`
+	ID   string `json:"id_laboratory"`
+	Name string `json:"laboratory_name"`
 }

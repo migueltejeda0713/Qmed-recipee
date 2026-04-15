@@ -1,62 +1,46 @@
 package handlers
 
 import (
-    "Qmed-Recipe/db"
-    "log"
-    "net/http"
-    "strconv"
+	"Qmed-Recipe/db"
+	"log"
+	"net/http"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 )
 
 func DeletePaciente(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    idStr := vars["id"]
-    
+	vars := mux.Vars(r)
+	idPatient := vars["id"]
 
-    
-    if r.Method == http.MethodOptions {
-        w.WriteHeader(http.StatusOK)
-        
-        return
-    }
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
-    if r.Method != http.MethodDelete {
-        http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-        log.Printf("[DeletePaciente] Método no permitido: %s", r.Method)
-        return
-    }
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		log.Printf("[DeletePaciente] Method not allowed: %s", r.Method)
+		return
+	}
 
-   
-    idPaciente, err := strconv.Atoi(idStr)
-    if err != nil {
-        http.Error(w, "ID inválido", http.StatusBadRequest)
-        
-        return
-    }
+	dbConn := db.InitDB()
+	defer dbConn.Close()
 
-    
-    dbConn := db.InitDB()
-    defer dbConn.Close()
+	query := `DELETE FROM patient WHERE id_patient = UUID_TO_BIN(?, TRUE)`
+	result, err := dbConn.Exec(query, idPatient)
+	if err != nil {
+		http.Error(w, "Error deleting patient", http.StatusInternalServerError)
+		log.Printf("[DeletePaciente] Error executing DELETE: %v", err)
+		return
+	}
 
-    
-    query := `DELETE FROM paciente WHERE id_pacient = ?`
-    result, err := dbConn.Exec(query, idPaciente)
-    if err != nil {
-        http.Error(w, "Error al eliminar paciente", http.StatusInternalServerError)
-        log.Printf("[DeletePaciente] Error ejecutando DELETE: %v", err)
-        return
-    }
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		log.Printf("[DeletePaciente] Patient with ID %s not found", idPatient)
+		return
+	}
 
-    rowsAffected, _ := result.RowsAffected()
-    if rowsAffected == 0 {
-        http.Error(w, "Paciente no encontrado", http.StatusNotFound)
-        log.Printf("[DeletePaciente] Paciente con ID %d no encontrado", idPaciente)
-        return
-    }
-
-   
-    w.WriteHeader(http.StatusOK)
-    w.Write([]byte("Paciente eliminado correctamente"))
-    
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Patient deleted successfully"))
 }

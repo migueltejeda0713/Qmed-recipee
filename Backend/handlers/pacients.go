@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"Qmed-Recipe/db"
+	"Qmed-Recipe/middleware"
 	"Qmed-Recipe/models"
 	"database/sql"
 	"encoding/json"
@@ -10,104 +11,135 @@ import (
 	"time"
 )
 
-
 func InsertPaciente(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	
-
-	var input models.PacienteInput
+	var input models.PatientInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Error decodificando JSON: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Error decoding JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	email, ok := r.Context().Value(middleware.DoctorEmailKey).(string)
+	if !ok || email == "" {
+		http.Error(w, "Unauthorized: missing doctor email", http.StatusUnauthorized)
 		return
 	}
 
 	database := db.InitDB()
 	defer database.Close()
 
-	if input.CedulaPaciente != "" {
-		if isAdult(input.EdadPaciente) {
+	var doctorID string
+	err := database.QueryRow("SELECT BIN_TO_UUID(id_doctor, TRUE) FROM doctor WHERE email = ?", email).Scan(&doctorID)
+	if err != nil {
+		log.Printf("Error getting doctor ID: %v", err)
+		http.Error(w, "Doctor not found", http.StatusUnauthorized)
+		return
+	}
+
+	if input.DocumentID != "" {
+		if isAdult(input.BirthDate) {
 			var exists int
 			err := database.QueryRow(`
-				SELECT COUNT(*) FROM paciente
-				WHERE documento_paciente = ?
-			`, input.CedulaPaciente).Scan(&exists)
+				SELECT COUNT(*) FROM patient
+				WHERE document_id = ?
+			`, input.DocumentID).Scan(&exists)
 
 			if err != nil {
-				log.Printf("Error verificando cédula: %v", err)
-				http.Error(w, "Error verificando cédula", http.StatusInternalServerError)
+				log.Printf("Error checking document: %v", err)
+				http.Error(w, "Error checking document", http.StatusInternalServerError)
 				return
 			}
 
 			if exists > 0 {
-				http.Error(w, "La cédula ya está registrada por otro paciente", http.StatusBadRequest)
+				http.Error(w, "Document ID already registered", http.StatusBadRequest)
 				return
 			}
 		}
 	}
 
-	fullName := input.NombrePaciente + " " + input.ApellidoPaciente
+	fullName := input.FirstName + " " + input.LastName
 
-	var seguroID sql.NullInt64
-	if input.IdAseguradora != 0 && input.PolizaPaciente != "" {
-		numSeguroQuery := `
-			INSERT INTO numero_seguro (id_aseguradora, numero_poliza)
-			VALUES (?, ?)
+	var policyID sql.NullString
+	if input.IDProvider != "" && input.PolicyNumber != "" {
+		policyQuery := `
+			INSERT INTO insurance_policy (id_provider, policy_number)
+			VALUES (UUID_TO_BIN(?, TRUE), ?)
 		`
-		result, err := database.Exec(numSeguroQuery, input.IdAseguradora, input.PolizaPaciente)
+		_, err := database.Exec(policyQuery, input.IDProvider, input.PolicyNumber)
 		if err != nil {
-			log.Printf("Error insertando en numero_seguro: %v", err)
-			http.Error(w, "Error insertando número de seguro: "+err.Error(), http.StatusInternalServerError)
+			log.Printf("Error inserting insurance policy: %v", err)
+			http.Error(w, "Error inserting insurance policy: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		id, err := result.LastInsertId()
+		// Get the UUID of the last inserted policy
+		var lastID string
+		err = database.QueryRow("SELECT BIN_TO_UUID(id_policy, TRUE) FROM insurance_policy ORDER BY created_at DESC LIMIT 1").Scan(&lastID)
 		if err != nil {
-			log.Printf("Error obteniendo el id del número de seguro: %v", err)
-			http.Error(w, "Error obteniendo el id del seguro: "+err.Error(), http.StatusInternalServerError)
+			log.Printf("Error getting policy id: %v", err)
+			http.Error(w, "Error getting policy id: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		seguroID = sql.NullInt64{Int64: id, Valid: true}
+		policyID = sql.NullString{String: lastID, Valid: true}
 	} else {
-		seguroID = sql.NullInt64{Valid: false}
+		policyID = sql.NullString{Valid: false}
 	}
 
-	pacienteQuery := `
-		INSERT INTO paciente (nombre, fecha_nacimiento, telefono, documento_paciente, id_seguro, id_doctor)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`
-	telefono := sql.NullString{String: input.TelefonoPaciente, Valid: input.TelefonoPaciente != ""}
+	phone := sql.NullString{String: input.Phone, Valid: input.Phone != ""}
 
-	res, err := database.Exec(
-		pacienteQuery,
-		fullName,
-		input.EdadPaciente,
-		telefono,
-		input.CedulaPaciente,
-		seguroID,
-		nil,
-	)
-	if err != nil {
-		log.Printf("Error insertando en paciente: %v", err)
-		http.Error(w, "Error insertando paciente: "+err.Error(), http.StatusInternalServerError)
-		log.Print(input.EdadPaciente)
+	var patientQuery string
+	var execErr error
+	if policyID.Valid {
+		patientQuery = `
+			INSERT INTO patient (name, birth_date, phone, document_id, id_policy, id_doctor)
+			VALUES (?, ?, ?, ?, UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE))
+		`
+		_, execErr = database.Exec(
+			patientQuery,
+			fullName,
+			input.BirthDate,
+			phone,
+			input.DocumentID,
+			policyID.String,
+			doctorID,
+		)
+	} else {
+		patientQuery = `
+			INSERT INTO patient (name, birth_date, phone, document_id, id_policy, id_doctor)
+			VALUES (?, ?, ?, ?, NULL, UUID_TO_BIN(?, TRUE))
+		`
+		_, execErr = database.Exec(
+			patientQuery,
+			fullName,
+			input.BirthDate,
+			phone,
+			input.DocumentID,
+			doctorID,
+		)
+	}
+	if execErr != nil {
+		log.Printf("Error inserting patient: %v", execErr)
+		http.Error(w, "Error inserting patient: "+execErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	lastID, err := res.LastInsertId()
+	// Get the UUID of the newly inserted patient
+	var patientUUID string
+	err = database.QueryRow("SELECT BIN_TO_UUID(id_patient, TRUE) FROM patient ORDER BY created_at DESC LIMIT 1").Scan(&patientUUID)
 	if err != nil {
-		http.Error(w, "Error obteniendo el id: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error getting id: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	response := map[string]interface{}{
-		"message":     "Paciente registrado correctamente",
-		"id_paciente": lastID,
+		"message":    "Patient registered successfully",
+		"id_patient": patientUUID,
 	}
-	if seguroID.Valid {
-		response["id_seguro"] = seguroID.Int64
+	if policyID.Valid {
+		response["id_policy"] = policyID.String
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -119,7 +151,7 @@ func isAdult(birthDate string) bool {
 	layout := dateFormat
 	dob, err := time.Parse(layout, birthDate)
 	if err != nil {
-		return false 
+		return false
 	}
 
 	today := time.Now()

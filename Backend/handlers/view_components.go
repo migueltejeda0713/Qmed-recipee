@@ -26,22 +26,22 @@ func GetComponentes(w http.ResponseWriter, r *http.Request) {
 	}
 	offset := (page - 1) * limit
 
-	rows, err := db.DB.Query("SELECT id_componente, nombre FROM componente ORDER BY id_componente DESC LIMIT ? OFFSET ?", limit, offset)
+	rows, err := db.DB.Query("SELECT BIN_TO_UUID(id_component, TRUE), name FROM component ORDER BY created_at DESC LIMIT ? OFFSET ?", limit, offset)
 	if err != nil {
-		http.Error(w, "Error al obtener componentes", http.StatusInternalServerError)
+		http.Error(w, "Error getting components", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var componentes []models.Componente
+	var components []models.Component
 	for rows.Next() {
-		var c models.Componente
-		if err := rows.Scan(&c.ID, &c.Nombre); err != nil {
-			http.Error(w, "Error al parsear componente", http.StatusInternalServerError)
+		var c models.Component
+		if err := rows.Scan(&c.ID, &c.Name); err != nil {
+			http.Error(w, "Error parsing component", http.StatusInternalServerError)
 			return
 		}
-		componentes = append(componentes, c)
+		components = append(components, c)
 	}
 
-	json.NewEncoder(w).Encode(componentes)
+	json.NewEncoder(w).Encode(components)
 }

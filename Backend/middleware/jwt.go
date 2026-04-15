@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"encoding/base64"
 	"net/http"
 	"os"
@@ -11,6 +12,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type contextKey string
+
+const DoctorEmailKey contextKey = "doctor_email"
+
 var jwtSecret []byte
 var encryptKey []byte
 
@@ -20,10 +25,10 @@ func init() {
 	encryptKey = []byte(os.Getenv("ENCRYPT_KEY"))
 }
 
-// GenerateJWT crea y firma el token JWT, luego lo encripta.
-func GenerateJWT(correo string) (string, error) {
+// GenerateJWT creates and signs the JWT token, then encrypts it.
+func GenerateJWT(email string) (string, error) {
 	claims := jwt.MapClaims{
-		"correo": correo,
+		"email": email,
 		"exp":    jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 	}
 
@@ -59,6 +64,13 @@ func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 		if err != nil || !token.Valid {
 			http.Error(w, "Token inválido", http.StatusUnauthorized)
 			return
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			if email, ok := claims["email"].(string); ok {
+				ctx := context.WithValue(r.Context(), DoctorEmailKey, email)
+				r = r.WithContext(ctx)
+			}
 		}
 
 		next(w, r)

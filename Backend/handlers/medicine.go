@@ -2,57 +2,62 @@
 package handlers
 
 import (
-    "Qmed-Recipe/db"
-    "encoding/json"
-    "log"
-    "net/http"
-    "Qmed-Recipe/models"
+	"Qmed-Recipe/db"
+	"encoding/json"
+	"log"
+	"net/http"
 )
 
 type createMedRequest struct {
-    Nombre        string `json:"nombre_medicamento"`
-    IDComponente  int    `json:"id_componente"`
-    IDLaboratorio int    `json:"id_laboratorio"`
+	Name         string `json:"medicine_name"`
+	IDComponent  string `json:"id_component"`
+	IDLaboratory string `json:"id_laboratory"`
 }
 
 func CreateMedicamento(w http.ResponseWriter, r *http.Request) {
-   
-    if r.Method == http.MethodOptions {
-        w.WriteHeader(http.StatusOK)
-        return
-    }
-    if r.Method != http.MethodPost {
-        http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-        return
-    }
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-    var req createMedRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        log.Println("JSON inválido:", err)
-        http.Error(w, "JSON inválido", http.StatusBadRequest)
-        return
-    }
+	var req createMedRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("Invalid JSON:", err)
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
 
-    dbConn := db.InitDB()
-    defer dbConn.Close()
+	dbConn := db.InitDB()
+	defer dbConn.Close()
 
-    res, err := dbConn.Exec(
-        `INSERT INTO medicamentos (nombre_medicamento, id_componente, id_laboratorio)
-         VALUES (?, ?, ?)`,
-        req.Nombre, req.IDComponente, req.IDLaboratorio,
-    )
-    if err != nil {
-        log.Println("Error insertando medicamento:", err)
-        http.Error(w, "Error al crear medicamento", http.StatusInternalServerError)
-        return
-    }
+	_, err := dbConn.Exec(
+		`INSERT INTO medicine (medicine_name, id_component, id_laboratory)
+		 VALUES (?, UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE))`,
+		req.Name, req.IDComponent, req.IDLaboratory,
+	)
+	if err != nil {
+		log.Println("Error inserting medicine:", err)
+		http.Error(w, "Error creating medicine", http.StatusInternalServerError)
+		return
+	}
 
-    id, _ := res.LastInsertId()
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(models.Medicamento{
-        IDMedicamento:            int(id),
-        NombreMedicamento:        req.Nombre,
-        IDComponente:  req.IDComponente,
-        IDLaboratorio: req.IDLaboratorio,
-    })
+	var id string
+	err = dbConn.QueryRow("SELECT BIN_TO_UUID(id_medicine, TRUE) FROM medicine ORDER BY created_at DESC LIMIT 1").Scan(&id)
+	if err != nil {
+		log.Println("Error getting medicine id:", err)
+		http.Error(w, "Error getting medicine id", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"id_medicine":   id,
+		"medicine_name": req.Name,
+		"id_component":  req.IDComponent,
+		"id_laboratory": req.IDLaboratory,
+	})
 }

@@ -6,86 +6,70 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
-type PolizaResponse struct {
-    NumeroPoliza      string `json:"numero_poliza"`
-    IdAseguradora     int    `json:"id_aseguradora"`
-    NombreAseguradora string `json:"nombre_aseguradora"`
+type PolicyResponse struct {
+	PolicyNumber string `json:"policy_number"`
+	IDProvider   string `json:"id_provider"`
+	ProviderName string `json:"provider_name"`
 }
 
 func GetPolizaByPaciente(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    idStr := vars["id"]
-    
+	vars := mux.Vars(r)
+	idPatient := vars["id"]
 
-    if r.Method == http.MethodOptions {
-        w.WriteHeader(http.StatusOK)
-        
-        return
-    }
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
-    if r.Method != http.MethodGet {
-        http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-        
-        return
-    }
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-    
-    idPaciente, err := strconv.Atoi(idStr)
-    if err != nil {
-        http.Error(w, "ID inválido", http.StatusBadRequest)
-        log.Printf("[GetPolizaByPaciente] Error convirtiendo ID '%s' a entero: %v", idStr, err)
-        return
-    }
+	dbConn := db.InitDB()
+	defer dbConn.Close()
 
-    
-    dbConn := db.InitDB()
-    defer dbConn.Close()
-    
-    
-    query := `
-      SELECT 
-        ns.numero_poliza,
-        ns.id_seguro,
-        a.nombre_aseguradora
-      FROM paciente p
-      LEFT JOIN numero_seguro ns ON p.id_seguro = ns.id_seguro
-      LEFT JOIN aseguradoras a ON ns.id_aseguradora = a.id_seguro
-      WHERE p.id_pacient = ?
-    `
-    var numPoliza sql.NullString
-    var idAseg sql.NullInt64
-    var nomAseg sql.NullString
+	query := `
+		SELECT
+			pol.policy_number,
+			BIN_TO_UUID(pol.id_provider, TRUE),
+			ip.provider_name
+		FROM patient p
+		LEFT JOIN insurance_policy pol ON p.id_policy = pol.id_policy
+		LEFT JOIN insurance_provider ip ON pol.id_provider = ip.id_provider
+		WHERE p.id_patient = UUID_TO_BIN(?, TRUE)
+	`
+	var policyNumber sql.NullString
+	var idProv sql.NullString
+	var provName sql.NullString
 
-    err = dbConn.QueryRow(query, idPaciente).Scan(
-        &numPoliza,
-        &idAseg,
-        &nomAseg,
-    )
-    if err != nil {
-        http.Error(w, "Error consultando póliza: "+err.Error(), http.StatusInternalServerError)
-        return
-    }
+	err := dbConn.QueryRow(query, idPatient).Scan(
+		&policyNumber,
+		&idProv,
+		&provName,
+	)
+	if err != nil {
+		http.Error(w, "Error querying policy: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    resp := PolizaResponse{}
-    if numPoliza.Valid {
-        resp.NumeroPoliza = numPoliza.String
-    }
-    if idAseg.Valid {
-        resp.IdAseguradora = int(idAseg.Int64)
-    }
-    if nomAseg.Valid {
-        resp.NombreAseguradora = nomAseg.String
-    }
+	resp := PolicyResponse{}
+	if policyNumber.Valid {
+		resp.PolicyNumber = policyNumber.String
+	}
+	if idProv.Valid {
+		resp.IDProvider = idProv.String
+	}
+	if provName.Valid {
+		resp.ProviderName = provName.String
+	}
 
-    
-
-    w.Header().Set("Content-Type", "application/json")
-    if err := json.NewEncoder(w).Encode(resp); err != nil {
-        log.Printf("[GetPolizaByPaciente] Error encoding JSON: %v", err)
-    }
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		log.Printf("[GetPolizaByPaciente] Error encoding JSON: %v", err)
+	}
 }

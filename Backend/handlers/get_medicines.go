@@ -1,65 +1,66 @@
 package handlers
 
 import (
-    "encoding/json"
-    "log"
-    "net/http"
-    "Qmed-Recipe/db"
+	"encoding/json"
+	"log"
+	"net/http"
+
+	"Qmed-Recipe/db"
 )
 
-type MedicamentoResponse struct {
-    IDMedicamento     int    `json:"id_medicamento"`
-    NombreMedicamento string `json:"nombre_medicamento"`
-    NombreComponente  string `json:"nombre_componente"`
-    NombreLaboratorio string `json:"nombre_laboratorio"`
+type MedicineResponse struct {
+	ID             string `json:"id_medicine"`
+	MedicineName   string `json:"medicine_name"`
+	ComponentName  string `json:"component_name"`
+	LaboratoryName string `json:"laboratory_name"`
 }
 
 func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
-    if r.Method == http.MethodOptions {
-        w.WriteHeader(http.StatusOK)
-        return
-    }
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
-    if r.Method != http.MethodGet {
-        http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-        return
-    }
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-    dbConn := db.InitDB()
-    defer dbConn.Close()
+	dbConn := db.InitDB()
+	defer dbConn.Close()
 
-    query := `
-        SELECT 
-            m.id_medicamento,
-            m.nombre_medicamento,
-            c.nombre,
-            l.nombre_laboratorio 
-        FROM medicamentos m
-        JOIN componentes c ON m.id_componente = c.id_componente
-        JOIN laboratorios l ON m.id_laboratorio = l.id_laboratorio
-        ORDER BY m.id_medicamento DESC;
-    `
+	query := `
+		SELECT
+			BIN_TO_UUID(m.id_medicine, TRUE),
+			m.medicine_name,
+			c.name,
+			l.laboratory_name
+		FROM medicine m
+		JOIN component c ON m.id_component = c.id_component
+		JOIN laboratory l ON m.id_laboratory = l.id_laboratory
+		ORDER BY m.created_at DESC;
+	`
 
-    rows, err := dbConn.Query(query)
-    if err != nil {
-        log.Println("Error ejecutando SELECT:", err)
-        http.Error(w, "Error al obtener medicamentos", http.StatusInternalServerError)
-        return
-    }
-    defer rows.Close()
+	rows, err := dbConn.Query(query)
+	if err != nil {
+		log.Println("Error executing SELECT:", err)
+		http.Error(w, "Error getting medicines", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 
-    var medicamentos []MedicamentoResponse
+	var medicines []MedicineResponse
 
-    for rows.Next() {
-        var m MedicamentoResponse
-        if err := rows.Scan(&m.IDMedicamento, &m.NombreMedicamento, &m.NombreComponente, &m.NombreLaboratorio); err != nil {
-            log.Println("Error escaneando fila:", err)
-            http.Error(w, "Error al leer los datos", http.StatusInternalServerError)
-            return
-        }
-        medicamentos = append(medicamentos, m)
-    }
+	for rows.Next() {
+		var m MedicineResponse
+		if err := rows.Scan(&m.ID, &m.MedicineName, &m.ComponentName, &m.LaboratoryName); err != nil {
+			log.Println("Error scanning row:", err)
+			http.Error(w, "Error reading data", http.StatusInternalServerError)
+			return
+		}
+		medicines = append(medicines, m)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(medicamentos)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(medicines)
 }

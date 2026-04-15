@@ -11,41 +11,37 @@ import (
 	"Qmed-Recipe/models"
 )
 
-// SearchComponente busca componentes por nombre (LIKE)
 func SearchComponente(w http.ResponseWriter, r *http.Request) {
-	// CORS
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	if r.Method == http.MethodOptions {
-		log.Println("OPTIONS en /api/searchcomponente")
+		log.Println("OPTIONS at /api/searchcomponente")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	// Parámetros de búsqueda y límite
 	q := r.URL.Query().Get("q")
 	limitQ := r.URL.Query().Get("limit")
 
-	// Consulta sólo con id_componente y nombre
 	baseQuery := `
-		SELECT id_componente, nombre
-		FROM componentes
+		SELECT BIN_TO_UUID(id_component, TRUE), name
+		FROM component
 	`
 	var args []interface{}
 	if q != "" {
-		baseQuery += " WHERE nombre LIKE ?"
+		baseQuery += " WHERE name LIKE ?"
 		args = append(args, "%"+q+"%")
 	}
-	baseQuery += " ORDER BY id_componente DESC"
+	baseQuery += " ORDER BY created_at DESC"
 
 	if limitQ != "" {
 		if lim, err := strconv.Atoi(limitQ); err == nil && lim > 0 {
 			baseQuery += " LIMIT ?"
 			args = append(args, lim)
 		} else {
-			log.Printf("limit inválido: %s\n", limitQ)
+			log.Printf("Invalid limit: %s\n", limitQ)
 		}
 	}
 
@@ -54,18 +50,17 @@ func SearchComponente(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := dbConn.Query(baseQuery, args...)
 	if err != nil {
-		log.Printf("Error en búsqueda: %v\n", err)
-		http.Error(w, "Error ejecutando búsqueda", http.StatusInternalServerError)
+		log.Printf("Search error: %v\n", err)
+		http.Error(w, "Error executing search", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	// Escaneo directo a struct sin DoctorID
-	var comps []models.Componente
+	var comps []models.Component
 	for rows.Next() {
-		var c models.Componente
-		if err := rows.Scan(&c.ID, &c.Nombre); err != nil {
-			log.Printf("Error escaneando: %v\n", err)
+		var c models.Component
+		if err := rows.Scan(&c.ID, &c.Name); err != nil {
+			log.Printf("Error scanning: %v\n", err)
 			continue
 		}
 		comps = append(comps, c)

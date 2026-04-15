@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -33,7 +32,7 @@ func validateCedula(cedula string) bool {
 	}
 
 	digitoVerificador := int(cedula[10] - '0')
-	return (10 - (suma % 10))%10 == digitoVerificador
+	return (10-(suma%10))%10 == digitoVerificador
 }
 
 func EditPaciente(w http.ResponseWriter, r *http.Request) {
@@ -43,68 +42,86 @@ func EditPaciente(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	idPacienteStr := vars["id"]
-	idPaciente, err := strconv.Atoi(idPacienteStr)
-	if err != nil {
-		http.Error(w, "ID inválido", http.StatusBadRequest)
-		return
-	}
+	idPatient := vars["id"]
 
-	var input models.PacienteInput
+	var input models.PatientInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Error decodificando JSON: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Error decoding JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if !validateCedula(input.CedulaPaciente) {
-		http.Error(w, "Cédula inválida", http.StatusBadRequest)
+	if !validateCedula(input.DocumentID) {
+		http.Error(w, "Invalid document ID", http.StatusBadRequest)
 		return
 	}
 
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
-	fullName := input.NombrePaciente + " " + input.ApellidoPaciente
-	telefono := sql.NullString{String: input.TelefonoPaciente, Valid: input.TelefonoPaciente != ""}
-	var seguroID sql.NullInt64
+	fullName := input.FirstName + " " + input.LastName
+	phone := sql.NullString{String: input.Phone, Valid: input.Phone != ""}
+	var policyID sql.NullString
 
-	if input.IdAseguradora != 0 && input.PolizaPaciente != "" {
-		numSeguroQuery := `
-			INSERT INTO numero_seguro (id_aseguradora, numero_poliza)
-			VALUES (?, ?)
+	if input.IDProvider != "" && input.PolicyNumber != "" {
+		policyQuery := `
+			INSERT INTO insurance_policy (id_provider, policy_number)
+			VALUES (UUID_TO_BIN(?, TRUE), ?)
 		`
-		res, err := dbConn.Exec(numSeguroQuery, input.IdAseguradora, input.PolizaPaciente)
+		_, err := dbConn.Exec(policyQuery, input.IDProvider, input.PolicyNumber)
 		if err != nil {
-			http.Error(w, "Error insertando número de seguro", http.StatusInternalServerError)
+			http.Error(w, "Error inserting insurance policy", http.StatusInternalServerError)
 			return
 		}
-		lastID, _ := res.LastInsertId()
-		seguroID = sql.NullInt64{Int64: lastID, Valid: true}
+		var lastID string
+		err = dbConn.QueryRow("SELECT BIN_TO_UUID(id_policy, TRUE) FROM insurance_policy ORDER BY created_at DESC LIMIT 1").Scan(&lastID)
+		if err != nil {
+			http.Error(w, "Error getting policy id", http.StatusInternalServerError)
+			return
+		}
+		policyID = sql.NullString{String: lastID, Valid: true}
 	} else {
-		seguroID = sql.NullInt64{Valid: false}
+		policyID = sql.NullString{Valid: false}
 	}
 
-	updateQuery := `
-		UPDATE paciente
-		SET nombre = ?, fecha_nacimiento = ?, telefono = ?, documento_paciente = ?, id_seguro = ?
-		WHERE id_pacient = ?
-	`
+	var updateQuery string
+	var err error
 
-	_, err = dbConn.Exec(
-		updateQuery,
-		fullName,
-		input.EdadPaciente,
-		telefono,
-		input.CedulaPaciente,
-		seguroID,
-		idPaciente,
-	)
+	if policyID.Valid {
+		updateQuery = `
+			UPDATE patient
+			SET name = ?, birth_date = ?, phone = ?, document_id = ?, id_policy = UUID_TO_BIN(?, TRUE)
+			WHERE id_patient = UUID_TO_BIN(?, TRUE)
+		`
+		_, err = dbConn.Exec(
+			updateQuery,
+			fullName,
+			input.BirthDate,
+			phone,
+			input.DocumentID,
+			policyID.String,
+			idPatient,
+		)
+	} else {
+		updateQuery = `
+			UPDATE patient
+			SET name = ?, birth_date = ?, phone = ?, document_id = ?
+			WHERE id_patient = UUID_TO_BIN(?, TRUE)
+		`
+		_, err = dbConn.Exec(
+			updateQuery,
+			fullName,
+			input.BirthDate,
+			phone,
+			input.DocumentID,
+			idPatient,
+		)
+	}
 
 	if err != nil {
-		http.Error(w, "Error actualizando paciente", http.StatusInternalServerError)
+		http.Error(w, "Error updating patient", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Paciente actualizado correctamente"})
+	json.NewEncoder(w).Encode(map[string]string{"message": "Patient updated successfully"})
 }

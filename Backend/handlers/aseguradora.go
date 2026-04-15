@@ -16,23 +16,23 @@ func GetAseguradoras(w http.ResponseWriter, r *http.Request) {
 	database := db.InitDB()
 	defer database.Close()
 
-	rows, err := database.Query("SELECT id_seguro, nombre_aseguradora FROM aseguradoras")
+	rows, err := database.Query("SELECT BIN_TO_UUID(id_provider, TRUE), provider_name FROM insurance_provider")
 	if err != nil {
-		http.Error(w, "Error consultando aseguradoras: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error querying insurance providers: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var aseguradoras []models.Aseguradora
+	var providers []models.InsuranceProvider
 	for rows.Next() {
-		var a models.Aseguradora
-		if err := rows.Scan(&a.ID, &a.Nombre); err != nil {
-			http.Error(w, "Error leyendo aseguradoras: "+err.Error(), http.StatusInternalServerError)
+		var p models.InsuranceProvider
+		if err := rows.Scan(&p.ID, &p.Name); err != nil {
+			http.Error(w, "Error reading insurance providers: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		aseguradoras = append(aseguradoras, a)
+		providers = append(providers, p)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(aseguradoras)
+	json.NewEncoder(w).Encode(providers)
 }

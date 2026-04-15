@@ -10,8 +10,6 @@ import (
 	"Qmed-Recipe/models"
 )
 
-
-
 func parsePag(r *http.Request) (int, int) {
 	page, size := defaultPage, defaultPageSize
 	if p := r.URL.Query().Get("page"); p != "" {
@@ -33,7 +31,6 @@ func GetComponentesPaginados(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	page, limit := parsePag(r)
 	offset := (page - 1) * limit
 
@@ -41,23 +38,23 @@ func GetComponentesPaginados(w http.ResponseWriter, r *http.Request) {
 	defer dbConn.Close()
 
 	query := `
-		SELECT id_componente, nombre
-		FROM componentes
-		ORDER BY id_componente DESC
+		SELECT BIN_TO_UUID(id_component, TRUE), name
+		FROM component
+		ORDER BY created_at DESC
 		LIMIT ? OFFSET ?
 	`
 	rows, err := dbConn.Query(query, limit, offset)
 	if err != nil {
-		log.Printf("Error listando componentes: %v\n", err)
-		http.Error(w, "Error consultando componentes", http.StatusInternalServerError)
+		log.Printf("Error listing components: %v\n", err)
+		http.Error(w, "Error querying components", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var comps []models.Componente
+	var comps []models.Component
 	for rows.Next() {
-		var c models.Componente
-		if err := rows.Scan(&c.ID, &c.Nombre); err != nil {
+		var c models.Component
+		if err := rows.Scan(&c.ID, &c.Name); err != nil {
 			log.Printf("Scan error: %v\n", err)
 			continue
 		}

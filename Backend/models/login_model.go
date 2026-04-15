@@ -1,7 +1,7 @@
 package models
 
 type LoginRequest struct {
-	Correo   string `json:"correo"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 

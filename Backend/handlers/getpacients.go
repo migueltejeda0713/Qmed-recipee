@@ -21,19 +21,19 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-func calcularEdad(fechaStr string) string {
-	t, err := time.Parse(dateFormat, fechaStr)
+func calculateAge(dateStr string) string {
+	t, err := time.Parse(dateFormat, dateStr)
 	if err != nil {
-		log.Printf("Error parseando fecha: %v", err)
+		log.Printf("Error parsing date: %v", err)
 		return ""
 	}
 
 	now := time.Now()
-	edad := now.Year() - t.Year()
+	age := now.Year() - t.Year()
 	if now.Month() < t.Month() || (now.Month() == t.Month() && now.Day() < t.Day()) {
-		edad--
+		age--
 	}
-	return strconv.Itoa(edad)
+	return strconv.Itoa(age)
 }
 
 func parsePaginationParams(r *http.Request) (int, int) {
@@ -71,69 +71,69 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 	defer dbConn.Close()
 
 	query := `
-		SELECT 
-			p.id_pacient, 
-			p.nombre, 
-			p.fecha_nacimiento, 
-			p.documento_paciente, 
-			p.telefono,
-			COALESCE(a.nombre_aseguradora, 'No especificada'),
-			COALESCE(ns.numero_poliza, 'Sin poliza registrada')
-		FROM paciente p
-		LEFT JOIN numero_seguro ns ON p.id_seguro = ns.id_seguro
-		LEFT JOIN aseguradoras a ON ns.id_aseguradora = a.id_seguro
-		ORDER BY p.id_pacient DESC
+		SELECT
+			BIN_TO_UUID(p.id_patient, TRUE),
+			p.name,
+			p.birth_date,
+			p.document_id,
+			p.phone,
+			COALESCE(ip.provider_name, 'Not specified'),
+			COALESCE(pol.policy_number, 'No policy registered')
+		FROM patient p
+		LEFT JOIN insurance_policy pol ON p.id_policy = pol.id_policy
+		LEFT JOIN insurance_provider ip ON pol.id_provider = ip.id_provider
+		ORDER BY p.created_at DESC
 		LIMIT ? OFFSET ?;
 	`
 
 	rows, err := dbConn.Query(query, limit, offset)
 	if err != nil {
-		log.Printf("Error ejecutando consulta: %v", err)
-		writeError(w, http.StatusInternalServerError, "Error consultando pacientes")
+		log.Printf("Error executing query: %v", err)
+		writeError(w, http.StatusInternalServerError, "Error querying patients")
 		return
 	}
 	defer rows.Close()
 
-	var pacientes []models.Paciente
+	var patients []models.Patient
 
 	for rows.Next() {
-		var p models.Paciente
-		var telefono, aseguradora, numeroPoliza sql.NullString
+		var p models.Patient
+		var phone, provider, policyNumber sql.NullString
 
 		if err := rows.Scan(
 			&p.ID,
-			&p.Nombre,
-			&p.FechaNacimiento,
-			&p.Cedula,
-			&telefono,
-			&aseguradora,
-			&numeroPoliza,
+			&p.Name,
+			&p.BirthDate,
+			&p.DocumentID,
+			&phone,
+			&provider,
+			&policyNumber,
 		); err != nil {
-			log.Printf("Error escaneando fila: %v", err)
+			log.Printf("Error scanning row: %v", err)
 			continue
 		}
 
-		p.Edad = calcularEdad(p.FechaNacimiento)
-		if telefono.Valid {
-			p.Telefono = telefono.String
+		p.Age = calculateAge(p.BirthDate)
+		if phone.Valid {
+			p.Phone = phone.String
 		}
-		if aseguradora.Valid {
-			p.Aseguradora = aseguradora.String
+		if provider.Valid {
+			p.Provider = provider.String
 		}
-		if numeroPoliza.Valid {
-			p.NumeroPoliza = numeroPoliza.String
+		if policyNumber.Valid {
+			p.PolicyNumber = policyNumber.String
 		}
 
-		pacientes = append(pacientes, p)
+		patients = append(patients, p)
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Printf("Error post-iteración: %v", err)
-		writeError(w, http.StatusInternalServerError, "Error leyendo resultados")
+		log.Printf("Post-iteration error: %v", err)
+		writeError(w, http.StatusInternalServerError, "Error reading results")
 		return
 	}
 
-	json.NewEncoder(w).Encode(pacientes)
+	json.NewEncoder(w).Encode(patients)
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {
