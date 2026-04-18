@@ -1,114 +1,29 @@
-// src/components/ListComponents.jsx
-import React, {
-  useState,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-} from "react";
+import React, { useState, useRef, forwardRef } from "react";
 import "../styles/listcomponents.css";
 import Loading from "./Loading";
 import SearchIcon from "../svg/search-left-1504-svgrepo-com.svg";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
 import Component from "./component";
 import { API_URL } from "../utils/api";
-import { ConfirmDialog } from "primereact/confirmdialog";
-import { confirmDialog } from "primereact/confirmdialog";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import Draggable from "react-draggable";
+import { usePaginatedList } from "../hooks/usePaginatedList";
 
 const ListComponents = forwardRef((props, ref) => {
-  const [components, setComponents] = useState([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [loadDuration, setLoadDuration] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredComponents, setFilteredComponents] = useState([]);
-
   const [showModal, setShowModal] = useState(false);
   const [moduleAnimation, setModuleAnimation] = useState(false);
   const modalRef = useRef(null);
 
-  const getToken = () => localStorage.getItem("token") || "";
+  const { toRender, setItems, loading, loadDuration, hasMore, page, searchTerm, setSearchTerm, fetchItems } =
+    usePaginatedList({
+      ref,
+      fetchUrl: "/api/getcomponentes",
+      searchUrl: "/api/searchcomponente",
+      searchParam: "q",
+      idField: "id_component",
+    });
 
-  const fetchComponents = async (nextPage = 1) => {
-    if (loading) return;
-    setLoading(true);
-    const start = performance.now();
-    const token = getToken();
-
-    try {
-      const res = await fetch(
-        `${API_URL}/api/getcomponentes?page=${nextPage}&limit=10`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (!res.ok) throw new Error("Error cargando componentes");
-      const data = (await res.json()) || [];
-
-      if (nextPage === 1) {
-        setComponents(data);
-        setHasMore(data.length >= 10);
-      } else {
-        setHasMore(data.length >= 10);
-        setComponents(prev => [
-          ...prev,
-          ...data.filter(c => !prev.some(p => p.id_component === c.id_component)),
-        ]);
-      }
-      setPage(nextPage);
-    } catch (err) {
-      console.error("Error al obtener componentes:", err);
-    } finally {
-      setLoadDuration(performance.now() - start);
-      setLoading(false);
-    }
-  };
-
-  const searchComponents = async (q) => {
-    const token = getToken();
-    try {
-      const res = await fetch(
-        `${API_URL}/api/searchcomponente?q=${encodeURIComponent(q)}&limit=50`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const data = (await res.json()) || [];
-      setFilteredComponents(data);
-      setHasMore(false);
-    } catch {
-      setFilteredComponents([]);
-    }
-  };
-
-  useImperativeHandle(ref, () => ({
-    refreshComponents: () => {
-      setComponents([]);
-      setPage(1);
-      setHasMore(true);
-      fetchComponents(1);
-    },
-  }));
-
-  useEffect(() => {
-    fetchComponents(1);
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchTerm.trim()) searchComponents(searchTerm);
-      else {
-        setFilteredComponents([]);
-        setHasMore(true);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  const toRender =
-    searchTerm.trim() && filteredComponents.length
-      ? filteredComponents
-      : components;
-
-  const handleDelete = (id) => {
+  const handleDelete = (id) =>
     confirmDialog({
       message: "¿Seguro que deseas eliminar este componente?",
       header: "Eliminar componente",
@@ -116,20 +31,19 @@ const ListComponents = forwardRef((props, ref) => {
       acceptLabel: "Eliminar",
       rejectLabel: "Cancelar",
       accept: async () => {
-        const token = getToken();
+        const token = localStorage.getItem("token") || "";
         try {
           const res = await fetch(`${API_URL}/api/deletecomponente/${id}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
           });
           if (!res.ok) throw new Error();
-          setComponents(prev => prev.filter(c => c.id_component !== id));
+          setItems((prev) => prev.filter((c) => c.id_component !== id));
         } catch {
           alert("Error al eliminar el componente.");
         }
       },
     });
-  };
 
   return (
     <div className="list-components">
@@ -142,14 +56,13 @@ const ListComponents = forwardRef((props, ref) => {
         >
           Agregar Componente
         </button>
-
         <div className="search-components-container">
           <input
             type="text"
             className="search-components-input"
             placeholder="Buscar componente..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <label className="search-components-icon">
             <img src={SearchIcon} alt="Buscar" width={16} height={16} />
@@ -175,15 +88,12 @@ const ListComponents = forwardRef((props, ref) => {
               </td>
             </tr>
           ) : (
-            toRender.map(c => (
+            toRender.map((c) => (
               <tr key={c.id_component}>
                 <td>{c.id_component}</td>
                 <td>{c.name}</td>
                 <td className="components-actions-cell">
-                  <button
-                    className="btn btn-delete"
-                    onClick={() => handleDelete(c.id_component)}
-                  >
+                  <button className="btn btn-delete" onClick={() => handleDelete(c.id_component)}>
                     <img
                       src={DeleteIcon}
                       alt="Eliminar"
@@ -193,7 +103,6 @@ const ListComponents = forwardRef((props, ref) => {
                     />
                   </button>
                 </td>
-
               </tr>
             ))
           )}
@@ -204,10 +113,7 @@ const ListComponents = forwardRef((props, ref) => {
 
       {!searchTerm && hasMore && !loading && (
         <div className="btn-more-components-container">
-          <button
-            className="btn-more-components"
-            onClick={() => fetchComponents(page + 1)}
-          >
+          <button className="btn-more-components" onClick={() => fetchItems(page + 1)}>
             Ver más
           </button>
         </div>
@@ -219,7 +125,7 @@ const ListComponents = forwardRef((props, ref) => {
         <Draggable nodeRef={modalRef} handle=".components-title">
           <div ref={modalRef}>
             <Component
-              onClose={() => { setShowModal(false); setModuleAnimation(false); fetchComponents(1); }}
+              onClose={() => { setShowModal(false); setModuleAnimation(false); fetchItems(1); }}
               moduleAnimation={moduleAnimation}
             />
           </div>
