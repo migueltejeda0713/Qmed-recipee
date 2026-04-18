@@ -1,60 +1,43 @@
 // src/components/Laboratory.jsx
-import React, { useRef, useState } from "react";
-import Draggable from "react-draggable";
+import React, { useState } from "react";
 import "../styles/pacientes.css";
 import "../styles/index.css";
 import { API_URL } from "../utils/api";
+import DraggableFormModal from "./DraggableFormModal";
 
-export default function Laboratorios({
-  showModule,
-  setShowModule,
-  onLaboratorioGuardado,
-  moduleAnimation,
-}) {
-  const dragRef = useRef(null);
-  const [form, setForm] = useState({ nombre_laboratorio: "" });
+export default function Laboratorios({ showModule, setShowModule, onLaboratorioGuardado, moduleAnimation }) {
+  const [nombre, setNombre] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setLoading] = useState(false);
 
-  const isValid = form.nombre_laboratorio.trim() !== "";
-  const validate = () => {
-    if (!isValid) {
-      setError("El nombre es obligatorio");
-      return false;
-    }
-    setError("");
-    return true;
-  };
+  const isValid = nombre.trim() !== "";
 
   const handleChange = (e) => {
-    setForm({ nombre_laboratorio: e.target.value });
-    if (error) validate();
+    const value = e.target.value;
+    setNombre(value);
+    if (error && value.trim()) setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!isValid) { setError("El nombre es obligatorio"); return; }
     setLoading(true);
-
-    const token = localStorage.getItem("token");
-
     try {
       const res = await fetch(`${API_URL}/api/laboratorios`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ laboratory_name: form.nombre_laboratorio.trim() }),
+        body: JSON.stringify({ laboratory_name: nombre.trim() }),
       });
       if (!res.ok) throw new Error(await res.text());
       await res.json();
       onLaboratorioGuardado();
-      setForm({ nombre_laboratorio: "" });
+      setNombre("");
       setError("");
       setShowModule(false);
-    } catch (err) {
-      console.error("Error creando laboratorio:", err);
+    } catch {
       setError("No se pudo crear el laboratorio");
     } finally {
       setLoading(false);
@@ -64,53 +47,33 @@ export default function Laboratorios({
   if (!showModule) return null;
 
   return (
-    <div className={`container-popup ${moduleAnimation ? "open" : "close"}`}>
-      <Draggable nodeRef={dragRef} handle=".lab-titulo">
-        <div className="draggable-wrapper" ref={dragRef}>
-          <form onSubmit={handleSubmit} className="container-paciente">
-            <h1 className="lab-titulo">Agregar Laboratorio</h1>
-
-            {error && (
-              <div className="error-message" style={{ marginBottom: "1rem" }}>
-                ⚠️ {error}
-              </div>
-            )}
-
-            <div className="container-datos-pacientes">
-              <label htmlFor="nombre_laboratorio" className="paciente-label">
-                Nombre del laboratorio:
-              </label>
-              <input
-                id="nombre_laboratorio"
-                name="nombre_laboratorio"
-                type="text"
-                maxLength={55}
-                value={form.nombre_laboratorio}
-                placeholder="Escribe el nombre..."
-                className={error ? "paciente-input error-input" : "paciente-input"}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="footer-buttons">
-              <button
-                type="submit"
-                className={`btn-enviar ${!isValid ? "disabled" : ""}`}
-                disabled={!isValid || isLoading}
-              >
-                {isLoading ? "Guardando..." : "Guardar"}
-              </button>
-              <button
-                type="button"
-                className="close-popup-btn"
-                onClick={() => setShowModule(false)}
-              >
-                X
-              </button>
-            </div>
-          </form>
-        </div>
-      </Draggable>
-    </div>
+    <DraggableFormModal
+      moduleAnimation={moduleAnimation}
+      titleClass="lab-titulo"
+      formClass="container-paciente"
+      title="Agregar Laboratorio"
+      error={error}
+      isValid={isValid}
+      isLoading={isLoading}
+      submitLabel="Guardar"
+      onSubmit={handleSubmit}
+      onClose={() => setShowModule(false)}
+    >
+      <div className="container-datos-pacientes">
+        <label htmlFor="nombre_laboratorio" className="paciente-label">
+          Nombre del laboratorio:
+        </label>
+        <input
+          id="nombre_laboratorio"
+          name="nombre_laboratorio"
+          type="text"
+          maxLength={55}
+          value={nombre}
+          placeholder="Escribe el nombre..."
+          className={error ? "paciente-input error-input" : "paciente-input"}
+          onChange={handleChange}
+        />
+      </div>
+    </DraggableFormModal>
   );
 }

@@ -44,23 +44,7 @@ export default function ListRecipes({ onAddReceta, onEditReceta, onViewReceta })
     <div className="list-pacientes">
       <h2 className="paciente-titulo">Listado de Recetas</h2>
       <header className="header-list-pacientes">
-        <button
-          onClick={onAddReceta}
-          className="btn btn-addPatient"
-          style={{
-            backgroundColor: '#4F46E5',
-            color: '#FFFFFF',
-            padding: '0.5rem 1rem',
-            border: 'none',
-            borderRadius: '0.375rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            transition: 'background-color 0.2s ease',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4338CA'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4F46E5'}
-        >
+        <button onClick={onAddReceta} className="btn-primary">
           Nueva Receta
         </button>
         <div className="search-container">

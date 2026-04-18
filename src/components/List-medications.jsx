@@ -50,27 +50,7 @@ export default function ListMedicines({ onAddMedicine, onEditMedicine, onViewMed
     <div className="list-pacientes">
       <h2 className="paciente-titulo">Medicines List</h2>
       <header className="header-list-pacientes">
-        <button
-          onClick={onAddMedicine}
-          className="btn btn-addPatient"
-          style={{
-            backgroundColor: "#4F46E5",
-            color: "#FFFFFF",
-            padding: "0.5rem 1rem",
-            border: "none",
-            borderRadius: "0.375rem",
-            fontWeight: "600",
-            cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-            transition: "background-color 0.2s ease",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#4338CA")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#4F46E5")
-          }
-        >
+        <button onClick={onAddMedicine} className="btn-primary">
           Add Medicine
         </button>
         <div className="search-container">
