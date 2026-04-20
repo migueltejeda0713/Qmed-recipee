@@ -82,7 +82,7 @@ export default function SidebarMenu() {
     },
     {
       label: (
-        <span className={`menu-label${isActive(['/list-laboratories', '/addlaboratorio']) ? ' active' : ''}`}>
+        <span className={`menu-label${isActive(['/list-laboratories', '/laboratorios/add']) ? ' active' : ''}`}>
           <FlaskConical size={18} style={iconStyle} /> Laboratorios
         </span>
       ),
@@ -97,12 +97,12 @@ export default function SidebarMenu() {
         },
         {
           label: (
-            <span className={`menu-label${isActive(['/addlaboratorio']) ? ' active' : ''}`}>
+            <span className={`menu-label${isActive(['/laboratorios/add']) ? ' active' : ''}`}>
               <PlusCircle size={16} style={iconStyle} /> Agregar laboratorio
             </span>
           ),
           command: () =>
-            navigate("/addlaboratorio", { state: { background: currentLocation } }),
+            navigate("/laboratorios/add", { state: { background: currentLocation } }),
         },
       ],
     },

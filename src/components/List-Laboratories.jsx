@@ -26,10 +26,10 @@ const ListLaboratories = forwardRef((props, ref) => {
   const handleDelete = async (id) => {
     try {
       setItems((prev) => prev.filter((p) => p.id_laboratory !== id));
-      const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/api/deletelaboratorio/${id}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error();
     } catch {
@@ -54,7 +54,7 @@ const ListLaboratories = forwardRef((props, ref) => {
       <header className="header-list-laboratorios">
         <button
           className="btn-primary"
-          onClick={() => navigate("/addlaboratorio", { state: { background: location } })}
+          onClick={() => navigate("/laboratorios/add", { state: { background: location } })}
         >
           Agregar Laboratorio
         </button>
