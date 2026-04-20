@@ -35,10 +35,10 @@ const ListPacients = forwardRef((props, ref) => {
     try {
       await deletePacienteIndexed(id);
       setItems((prev) => prev.filter((p) => p.id !== id));
-      const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/api/deletepacient/${id}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error();
     } catch {

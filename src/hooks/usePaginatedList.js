@@ -18,21 +18,19 @@ export function usePaginatedList({
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
 
-  const getToken = () => localStorage.getItem("token") || "";
-
   const fetchItems = async (nextPage = 1, { silent = false } = {}) => {
     if (loading) return;
     if (!silent) setLoading(true);
     const start = performance.now();
-    const token = getToken();
 
     try {
       const res = await fetch(
         `${API_URL}${fetchUrl}?page=${nextPage}&limit=10`,
-        { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }
+        { credentials: "include", headers: { "Content-Type": "application/json" } }
       );
       if (!res.ok) throw new Error("Error cargando datos");
-      const data = await res.json();
+      const json = await res.json();
+      const data = json?.data ?? [];
 
       setHasMore(data.length >= 10);
       if (onFetched) await onFetched(data);
@@ -77,13 +75,13 @@ export function usePaginatedList({
         setHasMore(true);
         return;
       }
-      const token = getToken();
       try {
         const res = await fetch(
           `${API_URL}${searchUrl}?${searchParam}=${encodeURIComponent(searchTerm)}`,
-          { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }
+          { credentials: "include", headers: { "Content-Type": "application/json" } }
         );
-        const data = await res.json();
+        const json = await res.json();
+        const data = json?.data ?? [];
         setFilteredItems(Array.isArray(data) ? data : []);
         setHasMore(false);
       } catch {

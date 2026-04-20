@@ -19,14 +19,10 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_URL}/api/login`, {
-        email,
-        password,
-      });
+      const response = await axios.post(`${API_URL}/api/login`, { email, password }, { withCredentials: true });
 
       if (response.data.success) {
-        // ⚠️ Guarda directamente el token cifrado como viene
-        saveToken(response.data.token);
+        saveToken();
         navigate("/");
       } else {
         setError("Correo o contraseña incorrectos");

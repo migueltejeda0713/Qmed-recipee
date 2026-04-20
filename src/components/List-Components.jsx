@@ -31,11 +31,10 @@ const ListComponents = forwardRef((props, ref) => {
       acceptLabel: "Eliminar",
       rejectLabel: "Cancelar",
       accept: async () => {
-        const token = localStorage.getItem("token") || "";
         try {
           const res = await fetch(`${API_URL}/api/deletecomponente/${id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
           });
           if (!res.ok) throw new Error();
           setItems((prev) => prev.filter((c) => c.id_component !== id));

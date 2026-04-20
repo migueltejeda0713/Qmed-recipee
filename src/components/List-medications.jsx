@@ -5,7 +5,6 @@ import EditIcon from "../svg/edit-3-svgrepo-com.svg";
 import ViewIcon from "../svg/zoom-in-svgrepo-com.svg";
 import { API_URL } from "../utils/api";
 
-const getToken = () => localStorage.getItem("token") || "";
 
 export default function ListMedicines({ onAddMedicine, onEditMedicine, onViewMedicine }) {
   const [medicines, setMedicines] = useState([]);
@@ -14,17 +13,12 @@ export default function ListMedicines({ onAddMedicine, onEditMedicine, onViewMed
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = getToken();
-    fetch(`${API_URL}/api/getmedicines`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    fetch(`${API_URL}/api/getmedicines`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("Error fetching medicines");
         return res.json();
       })
-      .then((data) => setMedicines(data))
+      .then((data) => setMedicines(data?.data ?? []))
       .catch((err) => {
         console.error("Error:", err);
         setError("Error cargando medicamentos.");

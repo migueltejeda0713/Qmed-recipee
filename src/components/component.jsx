@@ -5,7 +5,6 @@ import "../styles/index.css";
 import { API_URL } from "../utils/api";
 import DraggableFormModal from "./DraggableFormModal";
 
-const getToken = () => localStorage.getItem("token") || "";
 
 export default function ComponentModal({ onClose, moduleAnimation }) {
   const [nombre, setNombre] = useState("");
@@ -27,7 +26,8 @@ export default function ComponentModal({ onClose, moduleAnimation }) {
     try {
       const res = await fetch(`${API_URL}/api/componentes`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: nombre.trim() }),
       });
       if (!res.ok) throw new Error("Error al agregar componente");

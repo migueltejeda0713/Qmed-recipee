@@ -6,8 +6,6 @@ import { API_URL } from "../utils/api";
 import EditIcon from "../svg/edit-3-svgrepo-com.svg";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
 
-// Helper para obtener el token desde localStorage
-const getToken = () => localStorage.getItem("token") || "";
 
 export default function RecetaForm() {
   const [patient, setPatient] = useState({
@@ -22,14 +20,8 @@ export default function RecetaForm() {
 
   const handleInputFocus = async () => {
     try {
-      const token = getToken();
-      const { data } = await axios.get(
-        `${API_URL}/api/searchpacient?limit=5`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setSearchResults(data);
+      const { data } = await axios.get(`${API_URL}/api/searchpacient?limit=5`, { withCredentials: true });
+      setSearchResults(data?.data ?? []);
       setShowDropdown(true);
     } catch (err) {
       console.error("Error cargando pacientes recientes:", err);
@@ -47,14 +39,11 @@ export default function RecetaForm() {
     }
     debounceRef.current = setTimeout(async () => {
       try {
-        const token = getToken();
         const { data } = await axios.get(
           `${API_URL}/api/searchpacient?name=${encodeURIComponent(value)}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { withCredentials: true }
         );
-        setSearchResults(data);
+        setSearchResults(data?.data ?? []);
         setShowDropdown(true);
       } catch (err) {
         console.error("Error buscando pacientes:", err);

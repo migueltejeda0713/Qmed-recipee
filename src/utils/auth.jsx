@@ -1,15 +1,14 @@
-export const saveToken = (token) => {
-  localStorage.setItem("token", token);
-};
+import { API_URL } from "./api";
 
-export const getToken = () => {
-  return localStorage.getItem("token");
+export const saveToken = () => {
+  sessionStorage.setItem("loggedIn", "1");
 };
 
 export const isAuthenticated = () => {
-  return !!getToken();
+  return !!sessionStorage.getItem("loggedIn");
 };
 
-export const logout = () => {
-  localStorage.removeItem("token");
+export const logout = async () => {
+  await fetch(`${API_URL}/api/logout`, { method: "POST", credentials: "include" });
+  sessionStorage.removeItem("loggedIn");
 };

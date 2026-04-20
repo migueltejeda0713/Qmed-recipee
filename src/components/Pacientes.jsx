@@ -6,7 +6,6 @@ import "../styles/index.css";
 import { API_URL } from "../utils/api";
 import DraggableFormModal from "./DraggableFormModal";
 
-const getToken = () => localStorage.getItem("token") || "";
 
 const regex = {
   nombre: /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/,
@@ -49,9 +48,7 @@ export default function Pacientes(props) {
   const [forceError, setForceError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/aseguradoras`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
+    fetch(`${API_URL}/api/aseguradoras`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setAseguradoras(data ?? []))
       .catch(console.error);
@@ -79,9 +76,7 @@ export default function Pacientes(props) {
 
   useEffect(() => {
     if (!isEdit) return;
-    fetch(`${API_URL}/api/edit_aseguradora/${paciente.id}`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
+    fetch(`${API_URL}/api/edit_aseguradora/${paciente.id}`, { credentials: "include" })
       .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
       .then(({ policy_number, id_provider }) => {
         setForm((f) => ({
@@ -140,7 +135,8 @@ export default function Pacientes(props) {
     try {
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(await res.text());

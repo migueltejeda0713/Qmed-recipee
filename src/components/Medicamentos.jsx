@@ -5,7 +5,6 @@ import "../styles/index.css";
 import { API_URL } from "../utils/api";
 import DraggableFormModal from "./DraggableFormModal";
 
-const getToken = () => localStorage.getItem("token") || "";
 
 export default function Medicamentos({
   medicamento = {},
@@ -23,15 +22,12 @@ export default function Medicamentos({
   const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
-    const token = getToken();
-    const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-
-    fetch(`${API_URL}/api/getcomponentes`, { headers })
+    fetch(`${API_URL}/api/getcomponentes`, { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
       .then(setComponentes)
       .catch(() => setComponentes([]));
 
-    fetch(`${API_URL}/api/getlaboratorios`, { headers })
+    fetch(`${API_URL}/api/getlaboratorios`, { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
       .then(setLaboratorios)
       .catch(() => setLaboratorios([]));
@@ -75,7 +71,8 @@ export default function Medicamentos({
     try {
       const res = await fetch(`${API_URL}/api/medicamento`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           medicine_name: form.nombre_medicamento.trim(),
           id_component: form.id_componente,
