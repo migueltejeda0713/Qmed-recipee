@@ -1,0 +1,129 @@
+/* ============================= */
+/* menu-label: icon + text row   */
+/* ============================= */
+.menu-label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* ============================= */
+/* Panel wrapper                 */
+/* ============================= */
+.sidebar-menu .p-panelmenu-panel {
+  margin-bottom: 4px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* ============================= */
+/* Panel header — reset PrimeReact defaults */
+/* ============================= */
+.sidebar-menu .p-panelmenu-header {
+  border: none !important;
+  background: transparent !important;
+}
+
+.sidebar-menu .p-panelmenu-header-content {
+  border: none !important;
+  background: transparent !important;
+  border-radius: 8px;
+}
+
+.sidebar-menu .p-panelmenu-header-link {
+  padding: 0.65rem 1rem !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 8px;
+  border-left: 2px solid transparent !important;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+/* Hover — header */
+.sidebar-menu .p-panelmenu-header-content:hover .p-panelmenu-header-link {
+  background: #eff6ff !important;
+}
+
+/* Expanded */
+.sidebar-menu .p-panelmenu-header.p-highlight .p-panelmenu-header-link {
+  background: #f0f7ff !important;
+}
+
+/* Active (ruta actual) */
+.sidebar-menu .p-panelmenu-header-link:has(.menu-label.active) {
+  background: #dbeafe !important;
+  border-left: 2px solid #0d6efd !important;
+}
+
+/* Texto activo en header */
+.sidebar-menu .p-panelmenu-header-link:has(.menu-label.active) .menu-label {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+/* ============================= */
+/* Chevron icon                  */
+/* ============================= */
+.sidebar-menu .p-panelmenu-icon {
+  color: #9ca3af;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-menu .p-panelmenu-header-content:hover .p-panelmenu-icon,
+.sidebar-menu .p-panelmenu-header.p-highlight .p-panelmenu-icon {
+  color: #0d6efd;
+}
+
+/* ============================= */
+/* Sub-items container           */
+/* ============================= */
+.sidebar-menu .p-panelmenu-content {
+  border: none !important;
+  background: transparent !important;
+  padding: 0.25rem 0;
+}
+
+/* ============================= */
+/* Sub-item                      */
+/* ============================= */
+.sidebar-menu .p-menuitem {
+  margin-bottom: 2px;
+}
+
+.sidebar-menu .p-menuitem-content {
+  border-radius: 8px;
+}
+
+.sidebar-menu .p-menuitem-link {
+  padding: 0.45rem 1rem 0.45rem 2.75rem !important;
+  background: transparent !important;
+  border-radius: 8px;
+  transition: background 150ms ease;
+}
+
+/* Sub-item hover */
+.sidebar-menu .p-menuitem-link:hover {
+  background: #eff6ff !important;
+}
+
+/* Sub-item active */
+.sidebar-menu .p-menuitem-link:has(.menu-label.active) {
+  background: #dbeafe !important;
+}
+
+/* Sub-item label — normal */
+.sidebar-menu .p-menuitem-text .menu-label {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+/* Sub-item label — active */
+.sidebar-menu .p-menuitem-link:has(.menu-label.active) .menu-label {
+  font-weight: 500;
+  color: #1d4ed8;
+}
