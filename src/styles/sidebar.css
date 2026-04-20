@@ -1,7 +1,7 @@
 /* ============================= */
 /* menu-label: icon + text row   */
 /* ============================= */
-.menu-label {
+.sidebar-menu .menu-label {
   display: flex;
   align-items: center;
   gap: 0.55rem;
@@ -62,6 +62,11 @@
 .sidebar-menu .p-panelmenu-header-link:has(.menu-label.active) .menu-label {
   color: #1d4ed8;
   font-weight: 600;
+}
+
+/* Keep active bg when active header is hovered */
+.sidebar-menu .p-panelmenu-header-content:hover .p-panelmenu-header-link:has(.menu-label.active) {
+  background: #dbeafe !important;
 }
 
 /* ============================= */
@@ -126,4 +131,9 @@
 .sidebar-menu .p-menuitem-link:has(.menu-label.active) .menu-label {
   font-weight: 500;
   color: #1d4ed8;
+}
+
+/* Keep active bg when active sub-item is hovered */
+.sidebar-menu .p-menuitem-link:hover:has(.menu-label.active) {
+  background: #dbeafe !important;
 }
