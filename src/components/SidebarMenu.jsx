@@ -24,20 +24,21 @@ export default function SidebarMenu() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentLocation = useMemo(() => location, []);
+  const isActive = (paths) => paths.includes(location.pathname);
 
-  const iconStyle = { color: "#0d6efd" };
+  const iconStyle = { color: "#0d6efd", flexShrink: 0 };
 
   const items = [
     {
       label: (
-        <span className="menu-label">
+        <span className={`menu-label${isActive(['/list-pacients', '/addpacient']) ? ' active' : ''}`}>
           <Users size={18} style={iconStyle} /> Pacientes
         </span>
       ),
       items: [
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/list-pacients']) ? ' active' : ''}`}>
               <ListOrdered size={16} style={iconStyle} /> Lista de pacientes
             </span>
           ),
@@ -45,7 +46,7 @@ export default function SidebarMenu() {
         },
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/addpacient']) ? ' active' : ''}`}>
               <UserPlus size={16} style={iconStyle} /> Agregar paciente
             </span>
           ),
@@ -56,14 +57,14 @@ export default function SidebarMenu() {
     },
     {
       label: (
-        <span className="menu-label">
+        <span className={`menu-label${isActive(['/', '/list-recipes']) ? ' active' : ''}`}>
           <FileText size={18} style={iconStyle} /> Recetas
         </span>
       ),
       items: [
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/']) ? ' active' : ''}`}>
               <FilePlus size={16} style={iconStyle} /> Crear receta
             </span>
           ),
@@ -71,7 +72,7 @@ export default function SidebarMenu() {
         },
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/list-recipes']) ? ' active' : ''}`}>
               <ListOrdered size={16} style={iconStyle} /> Listado de recetas
             </span>
           ),
@@ -81,14 +82,14 @@ export default function SidebarMenu() {
     },
     {
       label: (
-        <span className="menu-label">
+        <span className={`menu-label${isActive(['/list-laboratories', '/addlaboratorio']) ? ' active' : ''}`}>
           <FlaskConical size={18} style={iconStyle} /> Laboratorios
         </span>
       ),
       items: [
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/list-laboratories']) ? ' active' : ''}`}>
               <ListOrdered size={16} style={iconStyle} /> Lista de laboratorios
             </span>
           ),
@@ -96,7 +97,7 @@ export default function SidebarMenu() {
         },
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/addlaboratorio']) ? ' active' : ''}`}>
               <PlusCircle size={16} style={iconStyle} /> Agregar laboratorio
             </span>
           ),
@@ -107,14 +108,14 @@ export default function SidebarMenu() {
     },
     {
       label: (
-        <span className="menu-label">
+        <span className={`menu-label${isActive(['/list-componentes', '/componentes/add']) ? ' active' : ''}`}>
           <Layers size={18} style={iconStyle} /> Componentes
         </span>
       ),
       items: [
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/list-componentes']) ? ' active' : ''}`}>
               <ListOrdered size={16} style={iconStyle} /> Lista de componentes
             </span>
           ),
@@ -122,7 +123,7 @@ export default function SidebarMenu() {
         },
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/componentes/add']) ? ' active' : ''}`}>
               <PlusSquare size={16} style={iconStyle} /> Agregar componente
             </span>
           ),
@@ -133,14 +134,14 @@ export default function SidebarMenu() {
     },
     {
       label: (
-        <span className="menu-label">
+        <span className={`menu-label${isActive(['/list-medicines', '/medicamentos/add']) ? ' active' : ''}`}>
           <Pill size={18} style={iconStyle} /> Medicamentos
         </span>
       ),
       items: [
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/list-medicines']) ? ' active' : ''}`}>
               <ClipboardList size={16} style={iconStyle} /> Lista de medicamentos
             </span>
           ),
@@ -148,7 +149,7 @@ export default function SidebarMenu() {
         },
         {
           label: (
-            <span className="menu-label">
+            <span className={`menu-label${isActive(['/medicamentos/add']) ? ' active' : ''}`}>
               <CirclePlus size={16} style={iconStyle} /> Agregar medicamento
             </span>
           ),
