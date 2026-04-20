@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 type createMedRequest struct {
@@ -31,25 +33,19 @@ func CreateMedicamento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id := uuid.New().String()
+
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
 	_, err := dbConn.Exec(
-		`INSERT INTO medicine (medicine_name, id_component, id_laboratory)
-		 VALUES (?, UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE))`,
-		req.Name, req.IDComponent, req.IDLaboratory,
+		`INSERT INTO medicine (id_medicine, medicine_name, id_component, id_laboratory)
+		 VALUES (UUID_TO_BIN(?, TRUE), ?, UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE))`,
+		id, req.Name, req.IDComponent, req.IDLaboratory,
 	)
 	if err != nil {
 		log.Println("Error inserting medicine:", err)
 		http.Error(w, "Error creating medicine", http.StatusInternalServerError)
-		return
-	}
-
-	var id string
-	err = dbConn.QueryRow("SELECT BIN_TO_UUID(id_medicine, TRUE) FROM medicine ORDER BY created_at DESC LIMIT 1").Scan(&id)
-	if err != nil {
-		log.Println("Error getting medicine id:", err)
-		http.Error(w, "Error getting medicine id", http.StatusInternalServerError)
 		return
 	}
 

@@ -49,7 +49,7 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var medicines []MedicineResponse
+	medicines := []MedicineResponse{}
 
 	for rows.Next() {
 		var m MedicineResponse
@@ -62,5 +62,5 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(medicines)
+	json.NewEncoder(w).Encode(map[string]interface{}{"data": medicines})
 }

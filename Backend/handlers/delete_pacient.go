@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"Qmed-Recipe/db"
+	"Qmed-Recipe/middleware"
 	"log"
 	"net/http"
 
@@ -23,11 +24,17 @@ func DeletePaciente(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	email, _ := r.Context().Value(middleware.DoctorEmailKey).(string)
+
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
-	query := `DELETE FROM patient WHERE id_patient = UUID_TO_BIN(?, TRUE)`
-	result, err := dbConn.Exec(query, idPatient)
+	query := `
+		DELETE FROM patient
+		WHERE id_patient = UUID_TO_BIN(?, TRUE)
+		  AND id_doctor = (SELECT id_doctor FROM doctor WHERE email = ?)
+	`
+	result, err := dbConn.Exec(query, idPatient, email)
 	if err != nil {
 		http.Error(w, "Error deleting patient", http.StatusInternalServerError)
 		log.Printf("[DeletePaciente] Error executing DELETE: %v", err)

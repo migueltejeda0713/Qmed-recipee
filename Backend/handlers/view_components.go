@@ -33,7 +33,7 @@ func GetComponentes(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var components []models.Component
+	components := []models.Component{}
 	for rows.Next() {
 		var c models.Component
 		if err := rows.Scan(&c.ID, &c.Name); err != nil {
@@ -43,5 +43,5 @@ func GetComponentes(w http.ResponseWriter, r *http.Request) {
 		components = append(components, c)
 	}
 
-	json.NewEncoder(w).Encode(components)
+	json.NewEncoder(w).Encode(map[string]interface{}{"data": components})
 }

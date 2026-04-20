@@ -51,7 +51,7 @@ func GetComponentesPaginados(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var comps []models.Component
+	comps := []models.Component{}
 	for rows.Next() {
 		var c models.Component
 		if err := rows.Scan(&c.ID, &c.Name); err != nil {
@@ -61,7 +61,8 @@ func GetComponentesPaginados(w http.ResponseWriter, r *http.Request) {
 		comps = append(comps, c)
 	}
 
-	if err := json.NewEncoder(w).Encode(comps); err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{"data": comps}); err != nil {
 		log.Printf("Error encoding JSON: %v\n", err)
 	}
 }

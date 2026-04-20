@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"Qmed-Recipe/db"
+	"Qmed-Recipe/middleware"
 	"Qmed-Recipe/models"
 )
 
@@ -17,17 +18,19 @@ func SearchPacient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	email, _ := r.Context().Value(middleware.DoctorEmailKey).(string)
 	nameQ := r.URL.Query().Get("name")
 	limitQ := r.URL.Query().Get("limit")
 
 	baseQuery := `
 		SELECT BIN_TO_UUID(id_patient, TRUE), name, birth_date, document_id, phone
 		FROM patient
+		WHERE id_doctor = (SELECT id_doctor FROM doctor WHERE email = ?)
 	`
-	var args []interface{}
+	args := []interface{}{email}
 
 	if nameQ != "" {
-		baseQuery += " WHERE MATCH(name) AGAINST (? IN NATURAL LANGUAGE MODE)"
+		baseQuery += " AND MATCH(name) AGAINST (? IN NATURAL LANGUAGE MODE)"
 		args = append(args, nameQ)
 	}
 
@@ -53,7 +56,7 @@ func SearchPacient(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var patients []models.PatientSearchResult
+	patients := []models.PatientSearchResult{}
 	for rows.Next() {
 		var p models.PatientSearchResult
 		var phoneNull *string
@@ -74,5 +77,5 @@ func SearchPacient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(patients)
+	json.NewEncoder(w).Encode(map[string]interface{}{"data": patients})
 }

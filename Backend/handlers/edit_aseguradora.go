@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"Qmed-Recipe/db"
+	"Qmed-Recipe/middleware"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -30,6 +31,8 @@ func GetPolizaByPaciente(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	email, _ := r.Context().Value(middleware.DoctorEmailKey).(string)
+
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
@@ -42,12 +45,13 @@ func GetPolizaByPaciente(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN insurance_policy pol ON p.id_policy = pol.id_policy
 		LEFT JOIN insurance_provider ip ON pol.id_provider = ip.id_provider
 		WHERE p.id_patient = UUID_TO_BIN(?, TRUE)
+		  AND p.id_doctor = (SELECT id_doctor FROM doctor WHERE email = ?)
 	`
 	var policyNumber sql.NullString
 	var idProv sql.NullString
 	var provName sql.NullString
 
-	err := dbConn.QueryRow(query, idPatient).Scan(
+	err := dbConn.QueryRow(query, idPatient, email).Scan(
 		&policyNumber,
 		&idProv,
 		&provName,

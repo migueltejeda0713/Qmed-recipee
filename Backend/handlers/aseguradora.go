@@ -23,7 +23,7 @@ func GetAseguradoras(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var providers []models.InsuranceProvider
+	providers := []models.InsuranceProvider{}
 	for rows.Next() {
 		var p models.InsuranceProvider
 		if err := rows.Scan(&p.ID, &p.Name); err != nil {
@@ -34,5 +34,5 @@ func GetAseguradoras(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(providers)
+	json.NewEncoder(w).Encode(map[string]interface{}{"data": providers})
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"Qmed-Recipe/db"
+	"github.com/google/uuid"
 )
 
 type createComponentRequest struct {
@@ -29,24 +30,18 @@ func CreateComponente(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id := uuid.New().String()
+
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
 	_, err := dbConn.Exec(
-		`INSERT INTO component (name) VALUES (?)`,
-		req.Name,
+		`INSERT INTO component (id_component, name) VALUES (UUID_TO_BIN(?, TRUE), ?)`,
+		id, req.Name,
 	)
 	if err != nil {
 		log.Println("Error inserting component:", err)
 		http.Error(w, "Error creating component", http.StatusInternalServerError)
-		return
-	}
-
-	var id string
-	err = dbConn.QueryRow("SELECT BIN_TO_UUID(id_component, TRUE) FROM component ORDER BY created_at DESC LIMIT 1").Scan(&id)
-	if err != nil {
-		log.Println("Error getting component id:", err)
-		http.Error(w, "Error getting component id", http.StatusInternalServerError)
 		return
 	}
 

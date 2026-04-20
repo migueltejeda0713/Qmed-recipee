@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"Qmed-Recipe/db"
+	"Qmed-Recipe/middleware"
 	"Qmed-Recipe/models"
 	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -44,9 +46,11 @@ func EditPaciente(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idPatient := vars["id"]
 
+	email, _ := r.Context().Value(middleware.DoctorEmailKey).(string)
+
 	var input models.PatientInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Error decoding JSON: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
@@ -63,22 +67,17 @@ func EditPaciente(w http.ResponseWriter, r *http.Request) {
 	var policyID sql.NullString
 
 	if input.IDProvider != "" && input.PolicyNumber != "" {
-		policyQuery := `
-			INSERT INTO insurance_policy (id_provider, policy_number)
-			VALUES (UUID_TO_BIN(?, TRUE), ?)
-		`
-		_, err := dbConn.Exec(policyQuery, input.IDProvider, input.PolicyNumber)
+		newPolicyID := uuid.New().String()
+		_, err := dbConn.Exec(
+			`INSERT INTO insurance_policy (id_policy, id_provider, policy_number)
+			 VALUES (UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE), ?)`,
+			newPolicyID, input.IDProvider, input.PolicyNumber,
+		)
 		if err != nil {
 			http.Error(w, "Error inserting insurance policy", http.StatusInternalServerError)
 			return
 		}
-		var lastID string
-		err = dbConn.QueryRow("SELECT BIN_TO_UUID(id_policy, TRUE) FROM insurance_policy ORDER BY created_at DESC LIMIT 1").Scan(&lastID)
-		if err != nil {
-			http.Error(w, "Error getting policy id", http.StatusInternalServerError)
-			return
-		}
-		policyID = sql.NullString{String: lastID, Valid: true}
+		policyID = sql.NullString{String: newPolicyID, Valid: true}
 	} else {
 		policyID = sql.NullString{Valid: false}
 	}
@@ -91,29 +90,24 @@ func EditPaciente(w http.ResponseWriter, r *http.Request) {
 			UPDATE patient
 			SET name = ?, birth_date = ?, phone = ?, document_id = ?, id_policy = UUID_TO_BIN(?, TRUE)
 			WHERE id_patient = UUID_TO_BIN(?, TRUE)
+			  AND id_doctor = (SELECT id_doctor FROM doctor WHERE email = ?)
 		`
 		_, err = dbConn.Exec(
 			updateQuery,
-			fullName,
-			input.BirthDate,
-			phone,
-			input.DocumentID,
-			policyID.String,
-			idPatient,
+			fullName, input.BirthDate, phone, input.DocumentID,
+			policyID.String, idPatient, email,
 		)
 	} else {
 		updateQuery = `
 			UPDATE patient
 			SET name = ?, birth_date = ?, phone = ?, document_id = ?
 			WHERE id_patient = UUID_TO_BIN(?, TRUE)
+			  AND id_doctor = (SELECT id_doctor FROM doctor WHERE email = ?)
 		`
 		_, err = dbConn.Exec(
 			updateQuery,
-			fullName,
-			input.BirthDate,
-			phone,
-			input.DocumentID,
-			idPatient,
+			fullName, input.BirthDate, phone, input.DocumentID,
+			idPatient, email,
 		)
 	}
 

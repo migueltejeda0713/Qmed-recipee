@@ -9,6 +9,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func InsertPaciente(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +21,7 @@ func InsertPaciente(w http.ResponseWriter, r *http.Request) {
 
 	var input models.PatientInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Error decoding JSON: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
@@ -65,78 +67,48 @@ func InsertPaciente(w http.ResponseWriter, r *http.Request) {
 
 	var policyID sql.NullString
 	if input.IDProvider != "" && input.PolicyNumber != "" {
-		policyQuery := `
-			INSERT INTO insurance_policy (id_provider, policy_number)
-			VALUES (UUID_TO_BIN(?, TRUE), ?)
-		`
-		_, err := database.Exec(policyQuery, input.IDProvider, input.PolicyNumber)
+		newPolicyID := uuid.New().String()
+		_, err := database.Exec(
+			`INSERT INTO insurance_policy (id_policy, id_provider, policy_number)
+			 VALUES (UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE), ?)`,
+			newPolicyID, input.IDProvider, input.PolicyNumber,
+		)
 		if err != nil {
 			log.Printf("Error inserting insurance policy: %v", err)
-			http.Error(w, "Error inserting insurance policy: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Error inserting insurance policy", http.StatusInternalServerError)
 			return
 		}
-		// Get the UUID of the last inserted policy
-		var lastID string
-		err = database.QueryRow("SELECT BIN_TO_UUID(id_policy, TRUE) FROM insurance_policy ORDER BY created_at DESC LIMIT 1").Scan(&lastID)
-		if err != nil {
-			log.Printf("Error getting policy id: %v", err)
-			http.Error(w, "Error getting policy id: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		policyID = sql.NullString{String: lastID, Valid: true}
+		policyID = sql.NullString{String: newPolicyID, Valid: true}
 	} else {
 		policyID = sql.NullString{Valid: false}
 	}
 
 	phone := sql.NullString{String: input.Phone, Valid: input.Phone != ""}
+	patientID := uuid.New().String()
 
-	var patientQuery string
 	var execErr error
 	if policyID.Valid {
-		patientQuery = `
-			INSERT INTO patient (name, birth_date, phone, document_id, id_policy, id_doctor)
-			VALUES (?, ?, ?, ?, UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE))
-		`
 		_, execErr = database.Exec(
-			patientQuery,
-			fullName,
-			input.BirthDate,
-			phone,
-			input.DocumentID,
-			policyID.String,
-			doctorID,
+			`INSERT INTO patient (id_patient, name, birth_date, phone, document_id, id_policy, id_doctor)
+			 VALUES (UUID_TO_BIN(?, TRUE), ?, ?, ?, ?, UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE))`,
+			patientID, fullName, input.BirthDate, phone, input.DocumentID, policyID.String, doctorID,
 		)
 	} else {
-		patientQuery = `
-			INSERT INTO patient (name, birth_date, phone, document_id, id_policy, id_doctor)
-			VALUES (?, ?, ?, ?, NULL, UUID_TO_BIN(?, TRUE))
-		`
 		_, execErr = database.Exec(
-			patientQuery,
-			fullName,
-			input.BirthDate,
-			phone,
-			input.DocumentID,
-			doctorID,
+			`INSERT INTO patient (id_patient, name, birth_date, phone, document_id, id_policy, id_doctor)
+			 VALUES (UUID_TO_BIN(?, TRUE), ?, ?, ?, ?, NULL, UUID_TO_BIN(?, TRUE))`,
+			patientID, fullName, input.BirthDate, phone, input.DocumentID, doctorID,
 		)
 	}
 	if execErr != nil {
 		log.Printf("Error inserting patient: %v", execErr)
-		http.Error(w, "Error inserting patient: "+execErr.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Get the UUID of the newly inserted patient
-	var patientUUID string
-	err = database.QueryRow("SELECT BIN_TO_UUID(id_patient, TRUE) FROM patient ORDER BY created_at DESC LIMIT 1").Scan(&patientUUID)
-	if err != nil {
-		http.Error(w, "Error getting id: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error inserting patient", http.StatusInternalServerError)
 		return
 	}
 
 	response := map[string]interface{}{
 		"message":    "Patient registered successfully",
-		"id_patient": patientUUID,
+		"id_patient": patientID,
 	}
 	if policyID.Valid {
 		response["id_policy"] = policyID.String

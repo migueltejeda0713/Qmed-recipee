@@ -69,6 +69,8 @@ func RegisterRoutes(r *mux.Router) {
 		BlockedIPMiddleware(tollbooth.LimitHandler(lmt, http.HandlerFunc(handlers.LoginDoctor))),
 	).Methods("POST", "OPTIONS")
 
+	r.Handle("/api/logout", http.HandlerFunc(handlers.LogoutDoctor)).Methods("POST", "OPTIONS")
+
 	
 	secure := []struct {
 		Path    string
@@ -87,6 +89,7 @@ func RegisterRoutes(r *mux.Router) {
 		{"/api/getcomponentes", handlers.GetComponentesPaginados, []string{"GET", "OPTIONS"}},
 		{"/api/getlaboratorios", handlers.GetLaboratorios, []string{"GET", "OPTIONS"}},
 		{"/api/searchcomponente", handlers.SearchComponente, []string{"GET", "OPTIONS"}},
+		{"/api/searchlaboratorio", handlers.SearchLaboratorio, []string{"GET", "OPTIONS"}},
 		{"/api/componentes", handlers.CreateComponente, []string{"POST", "OPTIONS"}},
 		{"/api/getmedicines", handlers.GetMedicamentos, []string{"GET", "OPTIONS"}},
 	}

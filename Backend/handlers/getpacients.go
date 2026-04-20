@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"Qmed-Recipe/db"
+	"Qmed-Recipe/middleware"
 	"Qmed-Recipe/models"
 	"database/sql"
 	"encoding/json"
@@ -59,11 +60,9 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
 
+	email, _ := r.Context().Value(middleware.DoctorEmailKey).(string)
 	page, limit := parsePaginationParams(r)
 	offset := (page - 1) * limit
 
@@ -82,11 +81,12 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 		FROM patient p
 		LEFT JOIN insurance_policy pol ON p.id_policy = pol.id_policy
 		LEFT JOIN insurance_provider ip ON pol.id_provider = ip.id_provider
+		WHERE p.id_doctor = (SELECT id_doctor FROM doctor WHERE email = ?)
 		ORDER BY p.created_at DESC
 		LIMIT ? OFFSET ?;
 	`
 
-	rows, err := dbConn.Query(query, limit, offset)
+	rows, err := dbConn.Query(query, email, limit, offset)
 	if err != nil {
 		log.Printf("Error executing query: %v", err)
 		writeError(w, http.StatusInternalServerError, "Error querying patients")
@@ -94,7 +94,7 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var patients []models.Patient
+	patients := []models.Patient{}
 
 	for rows.Next() {
 		var p models.Patient
@@ -133,7 +133,7 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(patients)
+	json.NewEncoder(w).Encode(map[string]interface{}{"data": patients})
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {

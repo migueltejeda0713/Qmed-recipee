@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 type createLabRequest struct {
@@ -30,24 +32,18 @@ func CreateLaboratorio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id := uuid.New().String()
+
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
 	_, err := dbConn.Exec(
-		`INSERT INTO laboratory (laboratory_name) VALUES (?)`,
-		req.Name,
+		`INSERT INTO laboratory (id_laboratory, laboratory_name) VALUES (UUID_TO_BIN(?, TRUE), ?)`,
+		id, req.Name,
 	)
 	if err != nil {
 		log.Println("Error inserting laboratory:", err)
 		http.Error(w, "Error creating laboratory", http.StatusInternalServerError)
-		return
-	}
-
-	var id string
-	err = dbConn.QueryRow("SELECT BIN_TO_UUID(id_laboratory, TRUE) FROM laboratory ORDER BY created_at DESC LIMIT 1").Scan(&id)
-	if err != nil {
-		log.Println("Error getting laboratory id:", err)
-		http.Error(w, "Error getting laboratory id", http.StatusInternalServerError)
 		return
 	}
 

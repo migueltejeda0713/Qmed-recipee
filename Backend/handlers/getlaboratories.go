@@ -31,7 +31,7 @@ func GetLaboratorios(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var labs []models.Laboratory
+	labs := []models.Laboratory{}
 	for rows.Next() {
 		var l models.Laboratory
 		if err := rows.Scan(&l.ID, &l.Name); err != nil {
@@ -41,7 +41,8 @@ func GetLaboratorios(w http.ResponseWriter, r *http.Request) {
 		labs = append(labs, l)
 	}
 
-	if err := json.NewEncoder(w).Encode(labs); err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{"data": labs}); err != nil {
 		log.Printf("Error encoding laboratories JSON: %v\n", err)
 	}
 }
