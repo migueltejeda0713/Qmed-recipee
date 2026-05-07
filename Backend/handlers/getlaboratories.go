@@ -1,4 +1,3 @@
-// handlers/getLaboratorios.go
 package handlers
 
 import (
@@ -10,11 +9,14 @@ import (
 	"Qmed-Recipe/models"
 )
 
-func GetLaboratorios(w http.ResponseWriter, r *http.Request) {
+func GetLaboratoriosPaginados(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+
+	page, limit := parsePag(r)
+	offset := (page - 1) * limit
 
 	dbConn := db.InitDB()
 	defer dbConn.Close()
@@ -22,8 +24,10 @@ func GetLaboratorios(w http.ResponseWriter, r *http.Request) {
 	rows, err := dbConn.Query(`
 		SELECT BIN_TO_UUID(id_laboratory, TRUE), laboratory_name
 		FROM laboratory
+		WHERE row_status_id = 2
 		ORDER BY created_at DESC
-	`)
+		LIMIT ? OFFSET ?
+	`, limit, offset)
 	if err != nil {
 		log.Printf("Error listing laboratories: %v\n", err)
 		http.Error(w, "Error querying laboratories", http.StatusInternalServerError)

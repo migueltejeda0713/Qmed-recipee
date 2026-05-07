@@ -7,10 +7,9 @@ import (
 	"strconv"
 
 	"Qmed-Recipe/db"
-	"Qmed-Recipe/models"
 )
 
-func SearchLaboratorio(w http.ResponseWriter, r *http.Request) {
+func SearchMedicamento(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -19,13 +18,23 @@ func SearchLaboratorio(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("name")
 	limitQ := r.URL.Query().Get("limit")
 
-	baseQuery := `SELECT BIN_TO_UUID(id_laboratory, TRUE), laboratory_name FROM laboratory WHERE row_status_id = 2`
+	baseQuery := `
+		SELECT
+			BIN_TO_UUID(m.id_medicine, TRUE),
+			m.medicine_name,
+			c.name,
+			l.laboratory_name
+		FROM medicine m
+		JOIN component c ON m.id_component = c.id_component
+		JOIN laboratory l ON m.id_laboratory = l.id_laboratory
+		WHERE m.row_status_id = 2
+	`
 	var args []interface{}
 	if q != "" {
-		baseQuery += " AND laboratory_name LIKE ?"
+		baseQuery += " AND m.medicine_name LIKE ?"
 		args = append(args, "%"+q+"%")
 	}
-	baseQuery += " ORDER BY created_at DESC"
+	baseQuery += " ORDER BY m.created_at DESC"
 
 	if limitQ != "" {
 		if lim, err := strconv.Atoi(limitQ); err == nil && lim > 0 {
@@ -41,24 +50,22 @@ func SearchLaboratorio(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := dbConn.Query(baseQuery, args...)
 	if err != nil {
-		log.Printf("Search laboratory error: %v\n", err)
+		log.Println("Search medicine error:", err)
 		http.Error(w, "Error executing search", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	labs := []models.Laboratory{}
+	medicines := []MedicineResponse{}
 	for rows.Next() {
-		var l models.Laboratory
-		if err := rows.Scan(&l.ID, &l.Name); err != nil {
-			log.Printf("Error scanning: %v\n", err)
+		var m MedicineResponse
+		if err := rows.Scan(&m.ID, &m.MedicineName, &m.ComponentName, &m.LaboratoryName); err != nil {
+			log.Println("Error scanning:", err)
 			continue
 		}
-		labs = append(labs, l)
+		medicines = append(medicines, m)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]interface{}{"data": labs}); err != nil {
-		log.Printf("Error encoding JSON: %v\n", err)
-	}
+	json.NewEncoder(w).Encode(map[string]interface{}{"data": medicines})
 }

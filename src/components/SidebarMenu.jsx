@@ -26,7 +26,7 @@ export default function SidebarMenu() {
   const currentLocation = useMemo(() => location, []);
   const isActive = (paths) => paths.includes(location.pathname);
 
-  const iconStyle = { color: "#0d6efd", flexShrink: 0 };
+  const iconStyle = { flexShrink: 0 };
 
   const items = [
     {

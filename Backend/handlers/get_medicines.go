@@ -26,6 +26,9 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	page, limit := parsePag(r)
+	offset := (page - 1) * limit
+
 	dbConn := db.InitDB()
 	defer dbConn.Close()
 
@@ -38,10 +41,12 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 		FROM medicine m
 		JOIN component c ON m.id_component = c.id_component
 		JOIN laboratory l ON m.id_laboratory = l.id_laboratory
-		ORDER BY m.created_at DESC;
+		WHERE m.row_status_id = 2
+		ORDER BY m.created_at DESC
+		LIMIT ? OFFSET ?
 	`
 
-	rows, err := dbConn.Query(query)
+	rows, err := dbConn.Query(query, limit, offset)
 	if err != nil {
 		log.Println("Error executing SELECT:", err)
 		http.Error(w, "Error getting medicines", http.StatusInternalServerError)

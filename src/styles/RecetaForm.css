@@ -1,282 +1,759 @@
 /* src/styles/RecetaForm.css */
 
-.receta-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr auto;
-  gap: 1.5rem;
+.receta-page {
+  --rx-bg: oklch(96.5% 0.009 240);
+  --rx-card: #ffffff;
+  --rx-blue: oklch(50% 0.19 245);
+  --rx-blue-light: oklch(94% 0.05 245);
+  --rx-blue-mid: oklch(88% 0.07 245);
+  --rx-text: oklch(18% 0.02 245);
+  --rx-text-soft: oklch(50% 0.025 245);
+  --rx-text-muted: oklch(68% 0.018 245);
+  --rx-input-bg: oklch(96% 0.012 245);
+  --rx-input-border: oklch(88% 0.025 245);
+  --rx-divider: oklch(92% 0.015 245);
+  --rx-shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.06), 0 1px 2px oklch(0% 0 0 / 0.04);
+  --rx-shadow-lg: 0 12px 40px oklch(0% 0 0 / 0.10), 0 4px 12px oklch(0% 0 0 / 0.05);
+  --rx-radius: 18px;
+  --rx-radius-sm: 10px;
+  --rx-font: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  --rx-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  font-family: var(--rx-font);
+  color: var(--rx-text);
   width: 100%;
-  flex: 1;
-  margin: 0;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  font-family: "Segoe UI", sans-serif;
+  max-width: 1340px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+.receta-page *,
+.receta-page *::before,
+.receta-page *::after {
   box-sizing: border-box;
 }
 
-.receta-column {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.receta-page .page-heading {
+  margin-bottom: 24px;
 }
 
-.receta-column h3 {
-  font-size: 1.5rem;
-  color: #1f2a37;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 0.25rem;
+.receta-page .page-heading h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--rx-text);
+  letter-spacing: -0.03em;
+  margin: 0;
 }
 
-.receta-column label {
+.receta-page .page-heading p {
+  font-size: 13px;
+  color: var(--rx-text-muted);
+  margin: 3px 0 0;
+  font-weight: 400;
+}
+
+/* Main card */
+.receta-page .main-card {
+  background: var(--rx-card);
+  border-radius: var(--rx-radius);
+  box-shadow: var(--rx-shadow-lg);
+  border: 1px solid var(--rx-divider);
   display: flex;
   flex-direction: column;
-  color: #334155;
+}
+
+.receta-page .card-body {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  min-height: 560px;
+}
+
+.receta-page .col-left {
+  border-right: 1px solid var(--rx-divider);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.receta-page .col-right {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Section header */
+.receta-page .section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.receta-page .section-label-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rx-blue);
+  flex-shrink: 0;
+}
+
+.receta-page .section-label h2 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rx-text-muted);
+  margin: 0;
+}
+
+.receta-page .saved-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--rx-blue);
+  background: var(--rx-blue-light);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* Form elements */
+.receta-page .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.receta-page .field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--rx-text-soft);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.receta-page .field-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--rx-input-border);
+  border-radius: var(--rx-radius-sm);
+  background: var(--rx-input-bg);
+  font-family: var(--rx-font);
+  font-size: 14px;
+  color: var(--rx-text);
+  outline: none;
+  transition: border-color var(--rx-transition), box-shadow var(--rx-transition), background var(--rx-transition);
+  font-weight: 400;
+}
+
+.receta-page .field-input::placeholder {
+  color: var(--rx-text-muted);
+}
+
+.receta-page .field-input:hover {
+  border-color: oklch(78% 0.04 245);
+}
+
+.receta-page .field-input:focus {
+  border-color: var(--rx-blue);
+  background: #fff;
+  box-shadow: 0 0 0 3.5px oklch(50% 0.19 245 / 0.10);
+}
+
+.receta-page textarea.field-input {
+  resize: vertical;
+  min-height: 60px;
+  font-family: var(--rx-font);
+}
+
+.receta-page .readonly-field {
+  padding: 10px 14px;
+  border: 1.5px solid var(--rx-divider);
+  border-radius: var(--rx-radius-sm);
+  background: oklch(98.5% 0.006 245);
+  font-size: 14px;
+  color: var(--rx-text);
+  font-weight: 500;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.receta-page .readonly-field.empty {
+  color: var(--rx-text-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.receta-page .fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Search */
+.receta-page .search-wrap {
+  position: relative;
+}
+
+.receta-page .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--rx-text-muted);
+  pointer-events: none;
+}
+
+.receta-page .search-input {
+  padding-left: 38px;
+  font-size: 14.5px;
   font-weight: 500;
 }
 
-.receta-column input,
-.receta-column textarea {
-  margin-top: 0.25rem;
-  padding: 0.6rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #f9fafb;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.receta-column input:focus,
-.receta-column textarea:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-  background: #fff;
-}
-
-/* Lista de medicamentos */
-.medicamentos-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.medicamento-item {
-  background: #f5f8fb;
-  padding: 1rem;
-  border-radius: 8px;
-  position: relative;
-}
-
-.remove-medicamento-btn {
+.receta-page .search-clear {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: #ef4444;
-  color: #fff;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: oklch(88% 0.02 245);
   border: none;
   border-radius: 50%;
-  width: 1.5rem;
-  height: 1.5rem;
-  cursor: pointer;
-}
-
-/* Guardar Medicamento */
-.save-medicamento-btn {
-  background-color: #1e40af;   /* azul oscuro */
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 0.5rem;
-  transition: background 0.2s;
-}
-
-.save-medicamento-btn:hover {
-  background-color: #1e3a8a;
-}
-
-/* Preview del medicamento guardado */
-.medicamento-preview {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  background: #eef4ff;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-}
-
-.preview-text {
-  font-size: 1rem;
-  color: #1e293b;
-}
-
-/* Botones de editar/eliminar en preview */
-.preview-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Editar */
-.btn-edit {
-  background-color: #4ade80;  /* verde claro original */
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s;
+  color: var(--rx-text-soft);
+  transition: background var(--rx-transition);
 }
 
-.btn-edit img {
-  width: 1rem;
-  height: 1rem;
+.receta-page .search-clear:hover {
+  background: oklch(82% 0.03 245);
 }
 
-.btn-edit:hover {
-  background-color: #22c55e;
-}
-
-/* Eliminar */
-.btn-delete {
-  background-color: #ef4444;  /* rojo original */
-  width: 2.25rem;
-  height: 2.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-delete img {
-  width: 1rem;
-  height: 1rem;
-}
-
-.btn-delete:hover {
-  background-color: #dc2626;
-}
-
-/* Botón Agregar Medicamento */
-.add-medicamento-btn {
-  background-color: #2563eb;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: auto;
-  align-self: flex-start;
-  transition: background 0.2s;
-}
-textarea{
-  resize: none;
-}
-.add-medicamento-btn:hover {
-  background-color: #1e40af;
-}
-
-/* Botón Guardar Receta */
-.receta-actions {
-  grid-column: span 2;
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
-}
-
-.receta-actions button {
-  background-color: #3b82f6;
-  color: #fff;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-}
-
-.receta-actions button:hover {
-  background-color: #2563eb;
-  transform: translateY(-1px);
-}
-
-.input-select-wrapper {
-  position: relative;
-}
-
-.dropdown-list {
+/* Dropdown */
+.receta-page .rx-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
-  max-height: 200px;
+  background: var(--rx-card);
+  border: 1.5px solid var(--rx-input-border);
+  border-radius: var(--rx-radius-sm);
+  box-shadow: var(--rx-shadow-lg);
+  z-index: 200;
+  overflow: hidden;
+  animation: rxDropIn 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
   overflow-y: auto;
-  background: #f9fafb;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  margin-top: 0.25rem;
-  z-index: 10;
 }
 
-.dropdown-item {
-  padding: 0.5rem;
+@keyframes rxDropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.receta-page .dropdown-header {
+  padding: 8px 14px 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rx-text-muted);
+  border-bottom: 1px solid var(--rx-divider);
+}
+
+.receta-page .rx-dropdown-item {
+  padding: 11px 14px;
   cursor: pointer;
+  transition: background var(--rx-transition);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--rx-divider);
 }
 
-.dropdown-item:hover {
-  background: #e2e8f0;
+.receta-page .rx-dropdown-item:last-child {
+  border-bottom: none;
 }
 
-/* Botón Agregar Prescripción */
-/* Botón Agregar Prescripción */
-.add-prescripcion-btn {
-  background-color: #3b82f6; /* Azul consistente con Guardar Receta */
-  color: #fff;
-  padding: 0.6rem 1.25rem;
+.receta-page .rx-dropdown-item:hover {
+  background: var(--rx-blue-light);
+}
+
+.receta-page .dropdown-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--rx-blue-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--rx-blue);
+  flex-shrink: 0;
+}
+
+.receta-page .dropdown-item-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--rx-text);
+  line-height: 1.2;
+}
+
+.receta-page .dropdown-item-meta {
+  font-size: 11.5px;
+  color: var(--rx-text-muted);
+  margin-top: 1px;
+}
+
+/* Patient banner */
+.receta-page .patient-banner {
+  background: var(--rx-blue-light);
+  border: 1.5px solid var(--rx-blue-mid);
+  border-radius: var(--rx-radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: rxFadeIn 200ms ease;
+}
+
+@keyframes rxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.receta-page .patient-banner-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--rx-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.receta-page .patient-banner-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rx-text);
+  letter-spacing: -0.01em;
+}
+
+.receta-page .patient-banner-meta {
+  font-size: 12px;
+  color: var(--rx-text-soft);
+  margin-top: 1px;
+}
+
+.receta-page .patient-banner-change {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rx-blue);
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: background var(--rx-transition);
   border: none;
+  background: transparent;
+  font-family: var(--rx-font);
+}
+
+.receta-page .patient-banner-change:hover {
+  background: var(--rx-blue-mid);
+}
+
+.receta-page .col-divider {
+  height: 1px;
+  background: var(--rx-divider);
+  margin: 4px 0;
+}
+
+.receta-page .empty-patient-hint {
+  margin-top: 24px;
+  padding: 20px;
   border-radius: 10px;
+  background: oklch(98% 0.006 245);
+  border: 1.5px dashed var(--rx-divider);
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--rx-text-muted);
+  line-height: 1.6;
+}
+
+.receta-page .footer-meta {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+/* Prescription list */
+.receta-page .rx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+/* Edit block */
+.receta-page .rx-edit-block {
+  border: 1.5px solid var(--rx-input-border);
+  border-radius: 12px;
+  padding: 16px;
+  background: oklch(98.5% 0.008 245);
+  position: relative;
+  animation: rxFadeIn 180ms ease;
+}
+
+.receta-page .rx-edit-block-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--rx-blue);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.receta-page .rx-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.receta-page .rx-edit-grid .span-2 {
+  grid-column: span 2;
+}
+
+.receta-page .rx-edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.receta-page .rx-delete-btn {
+  background: none;
+  border: 1.5px solid oklch(78% 0.04 15);
+  color: oklch(48% 0.12 15);
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--rx-font);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--rx-transition);
+}
+
+.receta-page .rx-delete-btn:hover {
+  background: oklch(97% 0.04 15);
+  border-color: oklch(60% 0.14 15);
+  color: oklch(38% 0.14 15);
+}
+
+.receta-page .rx-save-btn {
+  background: var(--rx-blue);
+  border: none;
+  color: white;
+  border-radius: 7px;
+  padding: 7px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--rx-font);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--rx-transition);
+  box-shadow: 0 2px 8px oklch(50% 0.19 245 / 0.25);
+}
+
+.receta-page .rx-save-btn:hover {
+  background: oklch(44% 0.19 245);
+  box-shadow: 0 4px 14px oklch(50% 0.19 245 / 0.35);
+}
+
+/* Saved card */
+.receta-page .rx-card {
+  border: 1.5px solid var(--rx-divider);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--rx-card);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: border-color var(--rx-transition), box-shadow var(--rx-transition);
+  animation: rxFadeIn 180ms ease;
+}
+
+.receta-page .rx-card:hover {
+  border-color: oklch(80% 0.05 245);
+  box-shadow: var(--rx-shadow-sm);
+}
+
+.receta-page .rx-card-index {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--rx-blue-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--rx-blue);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.receta-page .rx-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.receta-page .rx-card-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--rx-text);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.receta-page .rx-card-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.receta-page .rx-pill {
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--rx-input-bg);
+  border: 1px solid var(--rx-divider);
+  font-size: 11.5px;
+  color: var(--rx-text-soft);
+  font-weight: 500;
+}
+
+.receta-page .rx-card-usage {
+  font-size: 12px;
+  color: var(--rx-text-muted);
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.receta-page .rx-card-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.receta-page .icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1.5px solid var(--rx-divider);
+  background: var(--rx-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--rx-text-soft);
+  transition: all var(--rx-transition);
+}
+
+.receta-page .icon-btn:hover {
+  background: var(--rx-blue-light);
+  border-color: var(--rx-blue-mid);
+  color: var(--rx-blue);
+}
+
+.receta-page .icon-btn.danger:hover {
+  background: oklch(97% 0.04 15);
+  border-color: oklch(78% 0.08 15);
+  color: oklch(48% 0.14 15);
+}
+
+/* Add prescription button */
+.receta-page .add-rx-btn {
+  width: 100%;
+  padding: 11px 16px;
+  border: 1.5px dashed var(--rx-input-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--rx-blue);
+  font-family: var(--rx-font);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 1rem;
-  align-self: flex-start;
-  transition: background 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all var(--rx-transition);
+  letter-spacing: -0.01em;
 }
 
-.add-prescripcion-btn:hover {
-  background-color: #2563eb; /* Mismo tono que Guardar Receta en hover */
+.receta-page .add-rx-btn:hover:not(:disabled) {
+  background: var(--rx-blue-light);
+  border-color: var(--rx-blue);
+}
+
+.receta-page .add-rx-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Footer */
+.receta-page .card-footer {
+  border-top: 1px solid var(--rx-divider);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  border-radius: 0 0 var(--rx-radius) var(--rx-radius);
+  background: oklch(98.5% 0.007 245);
+}
+
+.receta-page .btn-secondary {
+  padding: 10px 20px;
+  border: 1.5px solid var(--rx-input-border);
+  border-radius: var(--rx-radius-sm);
+  background: var(--rx-card);
+  color: var(--rx-text-soft);
+  font-family: var(--rx-font);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all var(--rx-transition);
+}
+
+.receta-page .btn-secondary:hover {
+  border-color: oklch(75% 0.04 245);
+  color: var(--rx-text);
+  background: var(--rx-input-bg);
+}
+
+.receta-page .btn-primary-rx {
+  padding: 10px 26px;
+  border: none;
+  border-radius: var(--rx-radius-sm);
+  background: var(--rx-blue);
+  color: white;
+  font-family: var(--rx-font);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all var(--rx-transition);
+  box-shadow: 0 3px 12px oklch(50% 0.19 245 / 0.28);
+  letter-spacing: -0.01em;
+}
+
+.receta-page .btn-primary-rx:hover {
+  background: oklch(44% 0.19 245);
+  box-shadow: 0 5px 20px oklch(50% 0.19 245 / 0.40);
   transform: translateY(-1px);
 }
 
+.receta-page .btn-primary-rx:active {
+  transform: translateY(0);
+}
 
-.prescription-preview {
+/* Toast */
+.rx-toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: oklch(25% 0.02 245);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  background: #eef4ff;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  gap: 1rem;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 12px 40px oklch(0% 0 0 / 0.20);
+  z-index: 9999;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  animation: rxToastIn 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.preview-text {
+@keyframes rxToastIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rx-toast .toast-icon {
+  color: oklch(75% 0.15 150);
+  display: flex;
+}
+
+/* Empty state */
+.receta-page .rx-empty {
   flex: 1;
-  font-size: 1rem;
-  color: #1e293b;
-}
-
-.preview-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 20px;
+  color: var(--rx-text-muted);
+}
+
+.receta-page .rx-empty-icon {
+  opacity: 0.35;
+  margin-bottom: 4px;
+}
+
+.receta-page .rx-empty p {
+  font-size: 13.5px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.receta-page .rx-empty span {
+  font-size: 12px;
+  color: var(--rx-text-muted);
+  opacity: 0.8;
+}
+
+@media (max-width: 900px) {
+  .receta-page .card-body {
+    grid-template-columns: 1fr;
+  }
+  .receta-page .col-left {
+    border-right: none;
+    border-bottom: 1px solid var(--rx-divider);
+  }
+  .receta-page .col-left,
+  .receta-page .col-right {
+    padding: 20px;
+  }
 }

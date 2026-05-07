@@ -1,200 +1,222 @@
-/* src/styles/listcomponents.css */
-
-/* Contenedor principal de la lista: fondo blanco y sombra */
+/* ============================= */
+/* List page card                */
+/* ============================= */
 .list-components {
   width: 100%;
   flex: 1;
-  padding: 20px;
-  background-color: #ffffff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 28px 32px;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--divider);
+  box-shadow: var(--shadow-lg);
   box-sizing: border-box;
+  font-family: var(--font);
 }
 
-/* Encabezado de lista (título + botones) */
+.components-title {
+  font-size: 22px;
+  color: var(--text);
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: -0.03em;
+}
+
 .header-list-components {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  background-color: #c8dcf0;
-  border-radius: 8px;
+  padding: 14px 16px;
+  background: oklch(98.5% 0.007 245);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-md);
   margin-bottom: 20px;
-}
-.components-title {
-  font-size: 2.3rem;
-  color: #1e293b;
-  font-weight: 600;
-  margin-bottom: 20px;
+  gap: 1rem;
 }
 
-/* Estilos generales de botones */
+/* Button base (shared with btn defined elsewhere) */
 .btn-components {
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  position: relative;
-  text-align: center;
-  font-size: 1rem;
+  transition: all var(--transition);
+  font-weight: 600;
+  font-size: 0.875rem;
+  font-family: var(--font);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 .btn-components:hover {
-  transform: translateY(-2px);
-}
-/* Botón agregar */
-.btn-addComponent {
-  background-color: #3b82f6;
-  color: white;
-}
-.btn-addComponent::after {
-  content: "";
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-80%);
-  font-size: 1.8em;
-  color: white;
+  transform: translateY(-1px);
 }
 
-/* Buscador */
+.btn-addComponent {
+  background: var(--blue);
+  color: white;
+  box-shadow: 0 3px 12px oklch(50% 0.19 245 / 0.25);
+}
+.btn-addComponent:hover {
+  background: var(--blue-hover);
+  box-shadow: 0 5px 18px oklch(50% 0.19 245 / 0.35);
+}
+
+/* Search */
 .search-components-container {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-left: auto;
   position: relative;
 }
 .search-components-input {
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  width: 300px;
-  font-size: 1rem;
-  color: #334155;
-  transition: all 0.3s ease;
+  padding: 0.55rem 2.4rem 0.55rem 1rem;
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  width: 280px;
+  font-size: 0.875rem;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--card);
+  transition: all var(--transition);
+}
+.search-components-input::placeholder {
+  color: var(--text-muted);
 }
 .search-components-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3.5px oklch(50% 0.19 245 / 0.10);
   outline: none;
 }
 .search-components-icon {
   position: absolute;
-  right: 15px;
+  right: 0.6rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  z-index: 1;
+  width: 18px;
+  height: 18px;
+  opacity: 0.5;
+  pointer-events: none;
 }
 
-/* Tabla de componentes */
+/* Table */
 .components-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  font-family: sans-serif;
-}
-.components-table th,
-.components-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  text-align: left;
-  background-color: #ffffff;
-  color: #334155;
-}
-.components-table th {
-  background-color: #f1f5f9;
-  font-weight: 600;
-  color: #1e293b;
-  text-transform: uppercase;
-}
-.components-table tr:nth-child(even) td {
-  background-color: #f8fafc;
-}
-.components-table tr:hover td {
-  background-color: #edf2f7;
+  border: 1px solid var(--divider);
+  font-family: var(--font);
 }
 
-/* Celda de acciones */
+.components-table th,
+.components-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--divider);
+  text-align: left;
+  background: var(--card);
+  color: var(--text-soft);
+  font-size: 0.875rem;
+}
+
+.components-table th {
+  background: oklch(98.5% 0.007 245);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+}
+
+.components-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.components-table tr:hover td {
+  background: var(--blue-light);
+}
+
 .components-actions-cell {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   justify-content: center;
   align-items: center;
   padding: 0.5rem;
 }
 
-/* Botón "Ver más" */
+/* "Ver más" */
 .btn-more-components-container {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
 }
 .btn-more-components {
   width: 100%;
-  max-width: 200px;
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
+  max-width: 220px;
+  background: var(--blue-light);
+  color: var(--blue);
+  border: 1.5px solid var(--blue-mid);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  font-family: var(--font);
+  font-size: 0.875rem;
+  transition: all var(--transition);
 }
 .btn-more-components:hover {
-  transform: translateY(-2px);
+  background: var(--blue-mid);
+  transform: translateY(-1px);
 }
 
-/* Mensaje sin datos */
 .no-components-data {
   text-align: center;
-  color: #64748b;
+  color: var(--text-muted);
   font-style: italic;
   padding: 1rem;
 }
 
-
-
+/* Shared action buttons */
 .btn {
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  position: relative;
-  text-align: center;
-  font-size: 1rem;
+  transition: all var(--transition);
+  font-weight: 600;
+  font-size: 0.875rem;
+  font-family: var(--font);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 .btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
-.btn-addPatient {
-  background-color: #3b82f6;
-  color: white;
-}
-.btn-addPatient::after {
-  content: "";
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-80%);
-  font-size: 1.8em;
-  color: white;
-}
+
 .btn-edit {
-  background-color: #4ade80;
-  color: #f1f5f9;
-  font-weight: 600;
+  background: var(--blue-light);
+  color: var(--blue);
+  border: 1.5px solid var(--blue-mid);
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  justify-content: center;
 }
+.btn-edit:hover {
+  background: var(--blue-mid);
+}
+
 .btn-delete {
-  background-color: #ef4444;
-  color: white;
-  font-weight: 600;
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1.5px solid var(--danger-border);
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  justify-content: center;
 }
 .btn-delete:hover {
-  background-color: #ef2433;
+  background: oklch(92% 0.06 25);
+  color: var(--danger-hover);
 }

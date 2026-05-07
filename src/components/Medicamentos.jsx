@@ -22,14 +22,14 @@ export default function Medicamentos({
   const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
-    fetch(`${API_URL}/api/getcomponentes`, { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setComponentes)
+    fetch(`${API_URL}/api/getcomponentes?limit=100`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((json) => setComponentes(json?.data ?? []))
       .catch(() => setComponentes([]));
 
-    fetch(`${API_URL}/api/getlaboratorios`, { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setLaboratorios)
+    fetch(`${API_URL}/api/laboratorios_pag?limit=100`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((json) => setLaboratorios(json?.data ?? []))
       .catch(() => setLaboratorios([]));
   }, []);
 

@@ -1,102 +1,97 @@
-import React, { useState, useEffect } from "react";
+import { forwardRef } from "react";
 import "../styles/listpacients.css";
+import Loading from "./Loading";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
 import EditIcon from "../svg/edit-3-svgrepo-com.svg";
 import ViewIcon from "../svg/zoom-in-svgrepo-com.svg";
+import SearchIcon from "../svg/search-left-1504-svgrepo-com.svg";
 import { API_URL } from "../utils/api";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
+import { usePaginatedList } from "../hooks/usePaginatedList";
 
+const ListMedicines = forwardRef((_props, ref) => {
+  const { toRender, setItems, loading, loadDuration, hasMore, page, searchTerm, setSearchTerm, fetchItems } =
+    usePaginatedList({
+      ref,
+      fetchUrl: "/api/getmedicines",
+      searchUrl: "/api/searchmedicamento",
+      searchParam: "name",
+      idField: "id_medicine",
+    });
 
-export default function ListMedicines({ onAddMedicine, onEditMedicine, onViewMedicine }) {
-  const [medicines, setMedicines] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredMedicines, setFilteredMedicines] = useState([]);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/getmedicines`, { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error fetching medicines");
-        return res.json();
-      })
-      .then((data) => setMedicines(data?.data ?? []))
-      .catch((err) => {
-        console.error("Error:", err);
-        setError("Error cargando medicamentos.");
-      });
-  }, []);
-
-  useEffect(() => {
-    const term = searchTerm.toLowerCase().trim();
-    if (term) {
-      setFilteredMedicines(
-        medicines.filter((m) =>
-          m.medicine_name.toLowerCase().includes(term)
-        )
-      );
-    } else {
-      setFilteredMedicines(medicines);
-    }
-  }, [searchTerm, medicines]);
-
-  const listToRender = searchTerm ? filteredMedicines : medicines;
+  const handleDelete = (id) =>
+    confirmDialog({
+      message: "¿Estás seguro de que deseas eliminar este medicamento?",
+      header: "Eliminar medicamento",
+      icon: "pi pi-exclamation-triangle",
+      acceptLabel: "Eliminar",
+      rejectLabel: "Cancelar",
+      accept: async () => {
+        try {
+          setItems((prev) => prev.filter((m) => m.id_medicine !== id));
+          const res = await fetch(`${API_URL}/api/deletemedicamento/${id}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
+          if (!res.ok) throw new Error();
+        } catch {
+          alert("No se pudo eliminar el medicamento.");
+          fetchItems(1);
+        }
+      },
+    });
 
   return (
     <div className="list-pacientes">
-      <h2 className="paciente-titulo">Medicines List</h2>
+      <h2 className="paciente-titulo">Lista de Medicamentos</h2>
       <header className="header-list-pacientes">
-        <button onClick={onAddMedicine} className="btn-primary">
-          Add Medicine
-        </button>
         <div className="search-container">
           <input
             type="text"
-            placeholder="Search medicine..."
+            placeholder="Buscar medicamento..."
             className="search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <label className="search-icon-container">
+            <img src={SearchIcon} alt="Buscar" className="search-icon" />
+          </label>
         </div>
       </header>
-
-      {error && (
-        <div className="error-message" style={{ margin: "1rem 0", textAlign: "center" }}>
-          ⚠️ {error}
-        </div>
-      )}
 
       <table className="pacientes-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Component ID</th>
-            <th>Lab ID</th>
-            <th>Actions</th>
+            <th>Nombre</th>
+            <th>Componente</th>
+            <th>Laboratorio</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {listToRender.length === 0 ? (
+          {toRender.length === 0 ? (
             <tr>
               <td colSpan="4" style={{ textAlign: "center", fontStyle: "italic" }}>
-                {searchTerm
-                  ? `No medicines found for "${searchTerm}"`
-                  : "No medicines registered"}
+                {searchTerm.trim()
+                  ? `No se encontraron medicamentos para "${searchTerm}"`
+                  : "No hay medicamentos registrados"}
               </td>
             </tr>
           ) : (
-            listToRender.map((med) => (
+            toRender.map((med) => (
               <tr key={med.id_medicine}>
                 <td>{med.medicine_name}</td>
                 <td>{med.component_name}</td>
                 <td>{med.laboratory_name}</td>
                 <td className="actions-cell">
-                  <button className="btn btn-edit" onClick={() => onEditMedicine(med)}>
-                    <img src={EditIcon} alt="Edit" width={20} height={20} />
+                  <button className="btn btn-edit" onClick={() => {}}>
+                    <img src={EditIcon} alt="Editar" width={20} height={20} />
                   </button>
-                  <button className="btn btn-delete" onClick={() => {}}>
-                    <img src={DeleteIcon} alt="Delete" width={20} height={20} />
+                  <button className="btn btn-delete" onClick={() => handleDelete(med.id_medicine)}>
+                    <img src={DeleteIcon} alt="Eliminar" width={20} height={20} />
                   </button>
-                  <button className="btn btn-view" onClick={() => onViewMedicine(med)}>
-                    <img src={ViewIcon} alt="View" width={20} height={20} />
+                  <button className="btn btn-view" onClick={() => {}}>
+                    <img src={ViewIcon} alt="Ver" width={20} height={20} />
                   </button>
                 </td>
               </tr>
@@ -104,6 +99,20 @@ export default function ListMedicines({ onAddMedicine, onEditMedicine, onViewMed
           )}
         </tbody>
       </table>
+
+      {loading && <Loading duration={loadDuration} />}
+
+      {!searchTerm.trim() && hasMore && !loading && (
+        <div className="btn-more-container">
+          <button className="btn btn-more" onClick={() => fetchItems(page + 1)}>
+            Ver más
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog />
     </div>
   );
-}
+});
+
+export default ListMedicines;

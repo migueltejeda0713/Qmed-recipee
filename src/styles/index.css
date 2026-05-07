@@ -1,75 +1,137 @@
+/* ============================= */
+/* Global design tokens          */
+/* ============================= */
+:root {
+  /* Color palette (synced with RecetaForm) */
+  --bg: oklch(96.5% 0.009 240);
+  --card: #ffffff;
+  --blue: oklch(50% 0.19 245);
+  --blue-hover: oklch(44% 0.19 245);
+  --blue-light: oklch(94% 0.05 245);
+  --blue-mid: oklch(88% 0.07 245);
+  --text: oklch(18% 0.02 245);
+  --text-soft: oklch(50% 0.025 245);
+  --text-muted: oklch(68% 0.018 245);
+  --input-bg: oklch(96% 0.012 245);
+  --input-border: oklch(88% 0.025 245);
+  --divider: oklch(92% 0.015 245);
 
+  --success: oklch(58% 0.16 150);
+  --success-bg: oklch(94% 0.05 150);
+  --success-border: oklch(80% 0.10 150);
+  --warning: oklch(65% 0.16 80);
+  --warning-bg: oklch(95% 0.06 85);
+  --danger: oklch(55% 0.20 25);
+  --danger-hover: oklch(48% 0.21 25);
+  --danger-bg: oklch(96% 0.04 25);
+  --danger-border: oklch(80% 0.10 25);
 
+  --radius: 18px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
 
+  --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.06), 0 1px 2px oklch(0% 0 0 / 0.04);
+  --shadow-md: 0 4px 16px oklch(0% 0 0 / 0.07), 0 2px 6px oklch(0% 0 0 / 0.04);
+  --shadow-lg: 0 12px 40px oklch(0% 0 0 / 0.10), 0 4px 12px oklch(0% 0 0 / 0.05);
 
-*{
-    padding: 0%;
-    margin: 0%;
-    box-sizing: border-box;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+  --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Legacy aliases (to keep older selectors working) */
+  --primary-color: var(--bg);
+  --secundary-color: var(--card);
 }
 
-:root{
-    --primary-color: #ffffff;
-    --secundary-color: #F5F5F5;
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: var(--font);
 }
-body{
-    background-color: var(--primary-color);
-    
 
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-/* Estilos personalizados para PrimeReact ConfirmDialog */
+
+/* ============================= */
+/* PrimeReact ConfirmDialog       */
+/* ============================= */
 .p-confirm-dialog {
-  border-radius: 10px;
-  padding: 1rem;
-  background-color: #fff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+  padding: 0.5rem;
+  background: var(--card);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--divider);
+  font-family: var(--font);
 }
 
 .p-confirm-dialog .p-dialog-header {
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: #1e293b;
-  background: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 1rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  background: transparent;
+  border-bottom: 1px solid var(--divider);
+  padding: 1rem 1.25rem;
+  letter-spacing: -0.01em;
 }
 
 .p-confirm-dialog .p-dialog-content {
-  font-size: 1rem;
-  color: #334155;
-  padding: 1rem;
-  text-align: center;
+  font-size: 0.9375rem;
+  color: var(--text-soft);
+  padding: 1.25rem;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.p-confirm-dialog .p-confirm-dialog-icon,
+.p-confirm-dialog .p-icon {
+  color: var(--warning);
+  font-size: 1.25rem;
+  flex-shrink: 0;
 }
 
 .p-confirm-dialog .p-dialog-footer {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem;
-}
-
-.p-confirm-dialog .p-confirm-dialog-icon {
-  color: #f59e0b; /* Amarillo */
-  font-size: 1.5rem;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0 1.25rem 1.25rem;
+  border-top: none;
 }
 
 .p-confirm-dialog .p-button.custom-accept {
-  background-color: #4ade80 !important; /* Verde */
+  background: var(--danger) !important;
   border: none;
   color: white;
-    padding: 0.5rem 1.2rem;
-    border-radius: 8px;
-    font-weight: 600;
-    box-shadow: none;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 8px oklch(55% 0.20 25 / 0.25);
+  transition: background var(--transition);
+}
+.p-confirm-dialog .p-button.custom-accept:hover {
+  background: var(--danger-hover) !important;
 }
 
 .p-confirm-dialog .p-button.custom-reject {
-  background-color: #ef4444 !important; /* Rojo */
-  border: none;
-  color: white;
-  padding: 0.5rem 1.2rem;
-    border-radius: 8px;
-    font-weight: 600;
-    box-shadow: none;
+  background: var(--card) !important;
+  border: 1.5px solid var(--input-border) !important;
+  color: var(--text-soft) !important;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  box-shadow: none;
+  transition: all var(--transition);
+}
+.p-confirm-dialog .p-button.custom-reject:hover {
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
 }

@@ -1,43 +1,24 @@
 .loader {
-    width: 80px;
-    height: 80px;
-    position: relative;
-    animation: rotate 1s linear infinite;
+  width: 56px;
+  height: 56px;
+  position: relative;
+  margin: 1.5rem auto;
+  border-radius: 50%;
+  border: 4px solid var(--divider);
+  border-top-color: var(--blue);
+  animation: spin 750ms linear infinite;
+}
 
-    margin: 0 auto;
-  }
+/* Keep legacy cross children invisible if still rendered */
+.cross,
+.cross::before {
+  display: none;
+}
 
-  .cross {
-    position: absolute;
-    width: 20px;
-    height: 80px;
-    background-color: #e10600;
-    left: 50%;
-    top: 0;
-    transform: translateX(-50%);
-    border-radius: 4px;
-  }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
-  .cross::before {
-    content: "";
-    position: absolute;
-    width: 80px;
-    height: 20px;
-    background-color: #e10600;
-    top: 50%;
-    left: -30px;
-    transform: translateY(-50%);
-    border-radius: 4px;
-  }
-
-  @keyframes rotate {
-    0% {
-      transform: rotate(0deg);
-    }
-    50% {
-      transform: rotate(180deg);
-    }
-    100%{
-      transform: rotate(180deg)
-    }
-  }
+@keyframes rotate {
+  to { transform: rotate(360deg); }
+}

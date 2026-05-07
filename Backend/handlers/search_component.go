@@ -28,10 +28,11 @@ func SearchComponente(w http.ResponseWriter, r *http.Request) {
 	baseQuery := `
 		SELECT BIN_TO_UUID(id_component, TRUE), name
 		FROM component
+		WHERE row_status_id = 2
 	`
 	var args []interface{}
 	if q != "" {
-		baseQuery += " WHERE name LIKE ?"
+		baseQuery += " AND name LIKE ?"
 		args = append(args, "%"+q+"%")
 	}
 	baseQuery += " ORDER BY created_at DESC"

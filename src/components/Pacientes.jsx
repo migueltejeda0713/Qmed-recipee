@@ -50,7 +50,10 @@ export default function Pacientes(props) {
   useEffect(() => {
     fetch(`${API_URL}/api/aseguradoras`, { credentials: "include" })
       .then((r) => r.json())
-      .then((data) => setAseguradoras(data ?? []))
+      .then((res) => {
+        const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+        setAseguradoras(list);
+      })
       .catch(console.error);
   }, []);
 

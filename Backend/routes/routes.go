@@ -86,12 +86,15 @@ func RegisterRoutes(r *mux.Router) {
 		{"/api/edit_aseguradora/{id}", handlers.GetPolizaByPaciente, []string{"GET", "OPTIONS"}},
 		{"/api/searchpacient", handlers.SearchPacient, []string{"GET", "OPTIONS"}},
 		{"/api/laboratorios", handlers.CreateLaboratorio, []string{"POST", "OPTIONS"}},
+		{"/api/laboratorios_pag", handlers.GetLaboratoriosPaginados, []string{"GET", "OPTIONS"}},
+		{"/api/deletelaboratorio/{id}", handlers.SoftDeleteLaboratorio, []string{"DELETE", "OPTIONS"}},
 		{"/api/getcomponentes", handlers.GetComponentesPaginados, []string{"GET", "OPTIONS"}},
-		{"/api/getlaboratorios", handlers.GetLaboratorios, []string{"GET", "OPTIONS"}},
+		{"/api/deletecomponente/{id}", handlers.SoftDeleteComponente, []string{"DELETE", "OPTIONS"}},
 		{"/api/searchcomponente", handlers.SearchComponente, []string{"GET", "OPTIONS"}},
 		{"/api/searchlaboratorio", handlers.SearchLaboratorio, []string{"GET", "OPTIONS"}},
 		{"/api/componentes", handlers.CreateComponente, []string{"POST", "OPTIONS"}},
 		{"/api/getmedicines", handlers.GetMedicamentos, []string{"GET", "OPTIONS"}},
+		{"/api/searchmedicamento", handlers.SearchMedicamento, []string{"GET", "OPTIONS"}},
 	}
 
 	for _, route := range secure {
