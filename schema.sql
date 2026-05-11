@@ -22,7 +22,8 @@ USE rctm;
 --    ACTIVE       → todas las tablas (estado por defecto al crear)
 --    INACTIVE     → pacientes, medicamentos, laboratorios, componentes (soft-delete)
 --    ARCHIVED     → pacientes (solo el doctor que los tiene asignados puede archivar)
---    PRINTED      → recetas (impresa y entregada al paciente)
+--    ISSUED       → recetas (emitida formalmente, documento estable e inmutable)
+--    PRINTED      → recetas (impresa y entregada al paciente) [legacy, no usado como estado principal]
 --    CANCELLED    → recetas (anulada por el doctor)
 --    EXPIRED      → recetas (venció el período de validez sin ser usada)
 --    DISCONTINUED → medicamentos, laboratorios, componentes
@@ -42,6 +43,7 @@ INSERT INTO row_status (status_code, status_name, description) VALUES
 ('ACTIVE',       'Activo',         'Registro disponible y operativo'),
 ('INACTIVE',     'Inactivo',       'Soft-delete general; visible en historial'),
 ('ARCHIVED',     'Archivado',      'Paciente archivado por su doctor asignado'),
+('ISSUED',       'Emitida',        'Receta emitida formalmente, inmutable'),
 ('PRINTED',      'Impresa',        'Receta impresa y entregada al paciente'),
 ('CANCELLED',    'Cancelada',      'Receta anulada por el doctor'),
 ('EXPIRED',      'Expirada',       'Receta no usada dentro de su período de validez'),
@@ -206,15 +208,33 @@ CREATE TABLE medicine (
 -- 9. Recipes (recetas)
 -- ============================================
 CREATE TABLE recipe (
-    id_recipe     BINARY(16)      NOT NULL DEFAULT (UUID_TO_BIN(UUID(), TRUE)) PRIMARY KEY,
-    id_patient    BINARY(16)      NOT NULL,
-    id_doctor     BINARY(16)      NOT NULL,
-    row_status_id TINYINT UNSIGNED NOT NULL DEFAULT 1,  -- DRAFT
-    created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id_recipe                  BINARY(16)       NOT NULL DEFAULT (UUID_TO_BIN(UUID(), TRUE)) PRIMARY KEY,
+    recipe_number              VARCHAR(32)          NULL,
+    id_patient                 BINARY(16)       NOT NULL,
+    id_doctor                  BINARY(16)       NOT NULL,
+    row_status_id              TINYINT UNSIGNED NOT NULL DEFAULT 1,  -- DRAFT
+    general_notes              TEXT                 NULL,
 
+    doctor_name_snapshot       VARCHAR(200)         NULL,
+    doctor_license_snapshot    VARCHAR(50)          NULL,
+    patient_name_snapshot      VARCHAR(200)         NULL,
+    patient_document_snapshot  VARCHAR(50)          NULL,
+
+    issued_at                  TIMESTAMP            NULL,
+    cancelled_at               TIMESTAMP            NULL,
+    cancellation_reason        VARCHAR(255)         NULL,
+    expires_at                 TIMESTAMP            NULL,
+
+    printed_at                 TIMESTAMP            NULL,
+    print_count                INT UNSIGNED     NOT NULL DEFAULT 0,
+
+    created_at                 TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                 TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_recipe_number (recipe_number),
     INDEX idx_recipe_patient (id_patient),
     INDEX idx_recipe_doctor  (id_doctor),
+    INDEX idx_recipe_status  (row_status_id),
 
     CONSTRAINT fk_recipe_patient
         FOREIGN KEY (id_patient) REFERENCES patient (id_patient)
@@ -230,6 +250,14 @@ CREATE TABLE recipe (
 ) ENGINE=InnoDB;
 
 -- ============================================
+-- 9b. Recipe number sequence (atomic generator per year)
+-- ============================================
+CREATE TABLE recipe_sequence (
+    year         SMALLINT UNSIGNED NOT NULL PRIMARY KEY,
+    last_number  INT UNSIGNED      NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+-- ============================================
 -- 10. Prescriptions
 -- ============================================
 -- Las prescripciones heredan el ciclo de vida de su receta (ON DELETE CASCADE).
@@ -239,17 +267,23 @@ CREATE TABLE recipe (
 CREATE TABLE prescription (
     id_prescription    BINARY(16)   NOT NULL DEFAULT (UUID_TO_BIN(UUID(), TRUE)) PRIMARY KEY,
     id_recipe          BINARY(16)   NOT NULL,
+    id_medicine        BINARY(16)       NULL,
     name               VARCHAR(200) NOT NULL,
     quantity           VARCHAR(100) NOT NULL,
     dosage             TEXT         NOT NULL,
     usage_instructions TEXT             NULL,
     created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    INDEX idx_prescription_recipe (id_recipe),
+    INDEX idx_prescription_recipe   (id_recipe),
+    INDEX idx_prescription_medicine (id_medicine),
 
     CONSTRAINT fk_prescription_recipe
         FOREIGN KEY (id_recipe) REFERENCES recipe (id_recipe)
-        ON UPDATE CASCADE ON DELETE CASCADE
+        ON UPDATE CASCADE ON DELETE CASCADE,
+
+    CONSTRAINT fk_prescription_medicine
+        FOREIGN KEY (id_medicine) REFERENCES medicine (id_medicine)
+        ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- ============================================

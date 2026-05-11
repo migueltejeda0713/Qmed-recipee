@@ -18,13 +18,14 @@ import {
   CirclePlus,
 } from "lucide-react";
 import "../styles/sidebar.css";
-import { logout } from "../utils/auth";
+import { useAuth } from "../context/AuthContext";
 
 export default function SidebarMenu() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentLocation = useMemo(() => location, []);
   const isActive = (paths) => paths.includes(location.pathname);
+  const { logout } = useAuth();
 
   const iconStyle = { flexShrink: 0 };
 

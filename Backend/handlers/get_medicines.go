@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"Qmed-Recipe/db"
@@ -22,7 +21,7 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		clientError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Método HTTP no permitido")
 		return
 	}
 
@@ -30,7 +29,6 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 	offset := (page - 1) * limit
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	query := `
 		SELECT
@@ -48,8 +46,7 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := dbConn.Query(query, limit, offset)
 	if err != nil {
-		log.Println("Error executing SELECT:", err)
-		http.Error(w, "Error getting medicines", http.StatusInternalServerError)
+		serverError(w, "query_medicines", err)
 		return
 	}
 	defer rows.Close()
@@ -59,8 +56,7 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var m MedicineResponse
 		if err := rows.Scan(&m.ID, &m.MedicineName, &m.ComponentName, &m.LaboratoryName); err != nil {
-			log.Println("Error scanning row:", err)
-			http.Error(w, "Error reading data", http.StatusInternalServerError)
+			serverError(w, "scan_medicine", err)
 			return
 		}
 		medicines = append(medicines, m)

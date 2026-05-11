@@ -50,17 +50,16 @@ func EditPaciente(w http.ResponseWriter, r *http.Request) {
 
 	var input models.PatientInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		clientError(w, http.StatusBadRequest, "invalid_json", "El cuerpo de la solicitud no es JSON válido")
 		return
 	}
 
 	if !validateCedula(input.DocumentID) {
-		http.Error(w, "Invalid document ID", http.StatusBadRequest)
+		clientError(w, http.StatusBadRequest, "invalid_document", "El número de cédula no es válido")
 		return
 	}
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	fullName := input.FirstName + " " + input.LastName
 	phone := sql.NullString{String: input.Phone, Valid: input.Phone != ""}
@@ -74,7 +73,7 @@ func EditPaciente(w http.ResponseWriter, r *http.Request) {
 			newPolicyID, input.IDProvider, input.PolicyNumber,
 		)
 		if err != nil {
-			http.Error(w, "Error inserting insurance policy", http.StatusInternalServerError)
+			serverError(w, "insert_insurance_policy", err)
 			return
 		}
 		policyID = sql.NullString{String: newPolicyID, Valid: true}
@@ -112,7 +111,7 @@ func EditPaciente(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		http.Error(w, "Error updating patient", http.StatusInternalServerError)
+		serverError(w, "update_patient", err)
 		return
 	}
 

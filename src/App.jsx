@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   BrowserRouter as Router,
@@ -6,7 +5,6 @@ import {
   Route,
   useLocation,
   useNavigate,
-  Navigate,
 } from "react-router-dom";
 
 import SidebarMenu from "./components/SidebarMenu";
@@ -22,82 +20,52 @@ import ListLaboratories from "./components/List-Laboratories";
 import ListMedicines from "./components/List-medications";
 import ListRecipes from "./components/List-Recipes";
 
-import { isAuthenticated } from "./utils/auth";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import "./styles/App.css";
-
 
 function ModalRoutes({ paciente, setPaciente }) {
   const navigate = useNavigate();
-
   return (
     <Routes>
-      <Route
-        path="/addpacient"
-        element={
-          <Pacientes
-            paciente={paciente}
-            setPaciente={setPaciente}
-            moduleAnimation={true}
-            onPacienteGuardado={() => navigate(-1)}
-            onClose={() => navigate(-1)}
-          />
-        }
-      />
-      <Route
-        path="/editpacient"
-        element={
-          <Pacientes
-            paciente={paciente}
-            setPaciente={setPaciente}
-            moduleAnimation={true}
-            onPacienteGuardado={() => navigate(-1)}
-            onClose={() => navigate(-1)}
-          />
-        }
-      />
-      <Route
-        path="/laboratorios/add"
-        element={
-          <Laboratorios
-            showModule={true}
-            setShowModule={() => navigate(-1)}
-            onLaboratorioGuardado={() => navigate(-1)}
-            moduleAnimation={true}
-          />
-        }
-      />
-      <Route
-        path="/componentes/add"
-        element={<ComponentModal moduleAnimation={true} onClose={() => navigate(-1)} />}
-      />
-      <Route
-        path="/medicamentos/add"
-        element={
-          <Medicamentos
-            medicamento={{}}
-            setShowModule={() => navigate(-1)}
-            moduleAnimation={true}
-            onMedicamentoGuardado={() => navigate(-1)}
-          />
-        }
-      />
-      <Route
-        path="/medicamentos/edit"
-        element={
-          <Medicamentos
-            medicamento={{}}
-            setShowModule={() => navigate(-1)}
-            moduleAnimation={true}
-            onMedicamentoGuardado={() => navigate(-1)}
-          />
-        }
-      />
+      <Route path="/addpacient" element={
+        <Pacientes paciente={paciente} setPaciente={setPaciente}
+          moduleAnimation={true}
+          onPacienteGuardado={() => navigate(-1)}
+          onClose={() => navigate(-1)} />
+      } />
+      <Route path="/editpacient" element={
+        <Pacientes paciente={paciente} setPaciente={setPaciente}
+          moduleAnimation={true}
+          onPacienteGuardado={() => navigate(-1)}
+          onClose={() => navigate(-1)} />
+      } />
+      <Route path="/laboratorios/add" element={
+        <Laboratorios showModule={true}
+          setShowModule={() => navigate(-1)}
+          onLaboratorioGuardado={() => navigate(-1)}
+          moduleAnimation={true} />
+      } />
+      <Route path="/componentes/add" element={
+        <ComponentModal moduleAnimation={true} onClose={() => navigate(-1)} />
+      } />
+      <Route path="/medicamentos/add" element={
+        <Medicamentos medicamento={{}}
+          setShowModule={() => navigate(-1)}
+          moduleAnimation={true}
+          onMedicamentoGuardado={() => navigate(-1)} />
+      } />
+      <Route path="/medicamentos/edit" element={
+        <Medicamentos medicamento={{}}
+          setShowModule={() => navigate(-1)}
+          moduleAnimation={true}
+          onMedicamentoGuardado={() => navigate(-1)} />
+      } />
     </Routes>
   );
 }
 
-
-function ProtectedRoutes({ paciente, setPaciente }) {
+function ProtectedShell({ paciente, setPaciente }) {
   const location = useLocation();
   const backgroundLocation = location.state?.background;
 
@@ -109,17 +77,13 @@ function ProtectedRoutes({ paciente, setPaciente }) {
       <main className="main-content">
         <Routes location={backgroundLocation || location}>
           <Route path="/" element={<RecetaForm />} />
-          <Route
-            path="/list-pacients"
-            element={<ListaPacientes setPaciente={setPaciente} />}
-          />
+          <Route path="/list-pacients" element={<ListaPacientes setPaciente={setPaciente} />} />
           <Route path="/list-componentes" element={<ListComponents />} />
           <Route path="/list-recipes" element={<ListRecipes />} />
           <Route path="/list-medicines" element={<ListMedicines />} />
-          <Route path="/list-laboratories" element={<ListLaboratories/>}/>
+          <Route path="/list-laboratories" element={<ListLaboratories />} />
           <Route path="*" element={<RecetaForm />} />
         </Routes>
-
         {backgroundLocation && <ModalRoutes paciente={paciente} setPaciente={setPaciente} />}
       </main>
     </div>
@@ -128,37 +92,22 @@ function ProtectedRoutes({ paciente, setPaciente }) {
 
 function AppContent() {
   const [paciente, setPaciente] = useState(null);
-  const location = useLocation();
-  const backgroundLocation = location.state?.background;
-
-  const isLoginPage = location.pathname === "/login";
-  const isAuth = isAuthenticated();
-
-  if (!isAuth && !isLoginPage) return <Navigate to="/login" replace />;
-  if (isAuth && isLoginPage) return <Navigate to="/" replace />;
-
   return (
-    <>
-      <Routes location={backgroundLocation || location}>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/*"
-          element={<ProtectedRoutes paciente={paciente} setPaciente={setPaciente} />}
-        />
-      </Routes>
-
-      {backgroundLocation && (
-        <ModalRoutes paciente={paciente} setPaciente={setPaciente} />
-      )}
-    </>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/*" element={<ProtectedShell paciente={paciente} setPaciente={setPaciente} />} />
+      </Route>
+    </Routes>
   );
 }
-
 
 export default function App() {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }

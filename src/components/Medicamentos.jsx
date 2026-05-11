@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import "../styles/medicamentos.css";
 import "../styles/index.css";
-import { API_URL } from "../utils/api";
+import { API_URL, apiFetch } from "../utils/api";
 import DraggableFormModal from "./DraggableFormModal";
 
 
@@ -69,9 +69,8 @@ export default function Medicamentos({
     setSubmitError("");
 
     try {
-      const res = await fetch(`${API_URL}/api/medicamento`, {
+      const res = await apiFetch(`${API_URL}/api/medicamento`, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           medicine_name: form.nombre_medicamento.trim(),

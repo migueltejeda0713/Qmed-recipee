@@ -1,15 +1,20 @@
 import React, { useState, useRef, forwardRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/listcomponents.css";
 import Loading from "./Loading";
 import SearchIcon from "../svg/search-left-1504-svgrepo-com.svg";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
+import EditIcon from "../svg/edit-3-svgrepo-com.svg";
+import ViewIcon from "../svg/zoom-in-svgrepo-com.svg";
 import Component from "./component";
-import { API_URL } from "../utils/api";
+import { API_URL, apiFetch } from "../utils/api";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import Draggable from "react-draggable";
 import { usePaginatedList } from "../hooks/usePaginatedList";
 
 const ListComponents = forwardRef((props, ref) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [showModal, setShowModal] = useState(false);
   const [moduleAnimation, setModuleAnimation] = useState(false);
   const modalRef = useRef(null);
@@ -25,16 +30,15 @@ const ListComponents = forwardRef((props, ref) => {
 
   const handleDelete = (id) =>
     confirmDialog({
-      message: "¿Seguro que deseas eliminar este componente?",
-      header: "Eliminar componente",
+      message: "¿Seguro que deseas inactivar este componente?",
+      header: "Inactivar componente",
       icon: "pi pi-exclamation-triangle",
-      acceptLabel: "Eliminar",
+      acceptLabel: "Inactivar",
       rejectLabel: "Cancelar",
       accept: async () => {
         try {
-          const res = await fetch(`${API_URL}/api/deletecomponente/${id}`, {
+          const res = await apiFetch(`${API_URL}/api/deletecomponente/${id}`, {
             method: "DELETE",
-            credentials: "include",
           });
           if (!res.ok) throw new Error();
           setItems((prev) => prev.filter((c) => c.id_component !== id));
@@ -91,15 +95,25 @@ const ListComponents = forwardRef((props, ref) => {
               <tr key={c.id_component}>
                 <td>{c.id_component}</td>
                 <td>{c.name}</td>
-                <td className="components-actions-cell">
+                <td className="components-actions-cell actions-cell">
+                  <button
+                    className="btn btn-view"
+                    onClick={() =>
+                      navigate("/viewcomponente", { state: { componente: c, background: location } })
+                    }
+                  >
+                    <img src={ViewIcon} alt="Ver" width={20} height={20} />
+                  </button>
+                  <button
+                    className="btn btn-edit"
+                    onClick={() =>
+                      navigate("/editcomponente", { state: { componente: c, background: location } })
+                    }
+                  >
+                    <img src={EditIcon} alt="Editar" width={20} height={20} />
+                  </button>
                   <button className="btn btn-delete" onClick={() => handleDelete(c.id_component)}>
-                    <img
-                      src={DeleteIcon}
-                      alt="Eliminar"
-                      width={18}
-                      height={18}
-                      style={{ pointerEvents: "none", verticalAlign: "middle" }}
-                    />
+                    <img src={DeleteIcon} alt="Inactivar" width={20} height={20} />
                   </button>
                 </td>
               </tr>

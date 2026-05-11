@@ -19,7 +19,6 @@ func GetLaboratoriosPaginados(w http.ResponseWriter, r *http.Request) {
 	offset := (page - 1) * limit
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	rows, err := dbConn.Query(`
 		SELECT BIN_TO_UUID(id_laboratory, TRUE), laboratory_name
@@ -29,8 +28,7 @@ func GetLaboratoriosPaginados(w http.ResponseWriter, r *http.Request) {
 		LIMIT ? OFFSET ?
 	`, limit, offset)
 	if err != nil {
-		log.Printf("Error listing laboratories: %v\n", err)
-		http.Error(w, "Error querying laboratories", http.StatusInternalServerError)
+		serverError(w, "query_laboratories", err)
 		return
 	}
 	defer rows.Close()

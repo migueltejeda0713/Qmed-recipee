@@ -223,3 +223,19 @@
   align-items: center;
   padding: 0.5rem;
 }
+
+/* Recipe status pills */
+.status-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.status-draft     { background: oklch(94% 0.02 245); color: oklch(40% 0.05 245); }
+.status-issued    { background: oklch(92% 0.08 145); color: oklch(35% 0.12 145); }
+.status-printed   { background: oklch(92% 0.05 220); color: oklch(35% 0.12 220); }
+.status-cancelled { background: oklch(92% 0.06 25);  color: oklch(40% 0.16 25);  }
+.status-expired   { background: oklch(92% 0.04 80);  color: oklch(40% 0.10 80);  }

@@ -14,11 +14,10 @@ func GetAseguradoras(w http.ResponseWriter, r *http.Request) {
 	}
 
 	database := db.InitDB()
-	defer database.Close()
 
 	rows, err := database.Query("SELECT BIN_TO_UUID(id_provider, TRUE), provider_name FROM insurance_provider")
 	if err != nil {
-		http.Error(w, "Error querying insurance providers: "+err.Error(), http.StatusInternalServerError)
+		serverError(w, "query_insurance_providers", err)
 		return
 	}
 	defer rows.Close()
@@ -27,7 +26,7 @@ func GetAseguradoras(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var p models.InsuranceProvider
 		if err := rows.Scan(&p.ID, &p.Name); err != nil {
-			http.Error(w, "Error reading insurance providers: "+err.Error(), http.StatusInternalServerError)
+			serverError(w, "scan_insurance_provider", err)
 			return
 		}
 		providers = append(providers, p)

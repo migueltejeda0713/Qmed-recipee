@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"Qmed-Recipe/db"
@@ -18,21 +17,19 @@ func SoftDeleteComponente(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	result, err := dbConn.Exec(
 		`UPDATE component SET row_status_id = 3 WHERE id_component = UUID_TO_BIN(?, TRUE) AND row_status_id = 2`,
 		id,
 	)
 	if err != nil {
-		log.Printf("[SoftDeleteComponente] Error: %v", err)
-		http.Error(w, "Error deleting component", http.StatusInternalServerError)
+		serverError(w, "soft_delete_component", err)
 		return
 	}
 
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
-		http.Error(w, "Component not found", http.StatusNotFound)
+		clientError(w, http.StatusNotFound, "component_not_found", "El componente no existe")
 		return
 	}
 

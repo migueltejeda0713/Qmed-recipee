@@ -27,14 +27,13 @@ func GetPolizaByPaciente(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		clientError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Método HTTP no permitido")
 		return
 	}
 
 	email, _ := r.Context().Value(middleware.DoctorEmailKey).(string)
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	query := `
 		SELECT
@@ -56,8 +55,12 @@ func GetPolizaByPaciente(w http.ResponseWriter, r *http.Request) {
 		&idProv,
 		&provName,
 	)
+	if err == sql.ErrNoRows {
+		clientError(w, http.StatusNotFound, "patient_not_found", "El paciente no existe o no pertenece a este médico")
+		return
+	}
 	if err != nil {
-		http.Error(w, "Error querying policy: "+err.Error(), http.StatusInternalServerError)
+		serverError(w, "query_policy_by_patient", err)
 		return
 	}
 

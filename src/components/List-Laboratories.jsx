@@ -6,7 +6,7 @@ import DeleteIcon from "../svg/delete-svgrepo-com.svg";
 import EditIcon from "../svg/edit-3-svgrepo-com.svg";
 import ViewIcon from "../svg/zoom-in-svgrepo-com.svg";
 import SearchIcon from "../svg/search-left-1504-svgrepo-com.svg";
-import { API_URL } from "../utils/api";
+import { API_URL, apiFetch } from "../utils/api";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { usePaginatedList } from "../hooks/usePaginatedList";
 
@@ -26,9 +26,8 @@ const ListLaboratories = forwardRef((props, ref) => {
   const handleDelete = async (id) => {
     try {
       setItems((prev) => prev.filter((p) => p.id_laboratory !== id));
-      const res = await fetch(`${API_URL}/api/deletelaboratorio/${id}`, {
+      const res = await apiFetch(`${API_URL}/api/deletelaboratorio/${id}`, {
         method: "DELETE",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error();
@@ -40,10 +39,10 @@ const ListLaboratories = forwardRef((props, ref) => {
 
   const confirmDelete = (id) =>
     confirmDialog({
-      message: "¿Estás seguro de que deseas eliminar este laboratorio?",
-      header: "Eliminar laboratorio",
+      message: "¿Estás seguro de que deseas inactivar este laboratorio?",
+      header: "Inactivar laboratorio",
       icon: "pi pi-exclamation-triangle",
-      acceptLabel: "Eliminar",
+      acceptLabel: "Inactivar",
       rejectLabel: "Cancelar",
       accept: () => handleDelete(id),
     });
@@ -105,7 +104,7 @@ const ListLaboratories = forwardRef((props, ref) => {
                     className="btn btn-delete"
                     onClick={() => confirmDelete(laboratorio.id_laboratory)}
                   >
-                    <img src={DeleteIcon} alt="Eliminar" width={20} height={20} />
+                    <img src={DeleteIcon} alt="Inactivar" width={20} height={20} />
                   </button>
                   <button
                     className="btn btn-view"

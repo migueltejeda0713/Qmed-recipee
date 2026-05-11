@@ -35,7 +35,6 @@ func GetComponentesPaginados(w http.ResponseWriter, r *http.Request) {
 	offset := (page - 1) * limit
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	query := `
 		SELECT BIN_TO_UUID(id_component, TRUE), name
@@ -46,8 +45,7 @@ func GetComponentesPaginados(w http.ResponseWriter, r *http.Request) {
 	`
 	rows, err := dbConn.Query(query, limit, offset)
 	if err != nil {
-		log.Printf("Error listing components: %v\n", err)
-		http.Error(w, "Error querying components", http.StatusInternalServerError)
+		serverError(w, "query_components", err)
 		return
 	}
 	defer rows.Close()
