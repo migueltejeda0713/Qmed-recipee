@@ -46,12 +46,10 @@ func SearchPacient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	rows, err := dbConn.Query(baseQuery, args...)
 	if err != nil {
-		log.Printf("Error executing query: %v\n", err)
-		http.Error(w, "Error executing query: "+err.Error(), http.StatusInternalServerError)
+		serverError(w, "search_patients_query", err)
 		return
 	}
 	defer rows.Close()
@@ -62,8 +60,7 @@ func SearchPacient(w http.ResponseWriter, r *http.Request) {
 		var phoneNull *string
 
 		if err := rows.Scan(&p.ID, &p.Name, &p.BirthDate, &p.DocumentID, &phoneNull); err != nil {
-			log.Printf("Error scanning row: %v\n", err)
-			http.Error(w, "Error scanning results: "+err.Error(), http.StatusInternalServerError)
+			serverError(w, "search_patients_scan", err)
 			return
 		}
 

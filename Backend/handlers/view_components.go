@@ -28,7 +28,7 @@ func GetComponentes(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.DB.Query("SELECT BIN_TO_UUID(id_component, TRUE), name FROM component ORDER BY created_at DESC LIMIT ? OFFSET ?", limit, offset)
 	if err != nil {
-		http.Error(w, "Error getting components", http.StatusInternalServerError)
+		serverError(w, "view_components_query", err)
 		return
 	}
 	defer rows.Close()
@@ -37,7 +37,7 @@ func GetComponentes(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var c models.Component
 		if err := rows.Scan(&c.ID, &c.Name); err != nil {
-			http.Error(w, "Error parsing component", http.StatusInternalServerError)
+			serverError(w, "view_components_scan", err)
 			return
 		}
 		components = append(components, c)

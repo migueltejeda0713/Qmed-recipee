@@ -22,21 +22,20 @@ func CreateMedicamento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		clientError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Método HTTP no permitido")
 		return
 	}
 
 	var req createMedRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("Invalid JSON:", err)
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		log.Printf("CreateMedicamento: decode err=%v", err)
+		clientError(w, http.StatusBadRequest, "invalid_json", "El cuerpo de la solicitud no es JSON válido")
 		return
 	}
 
 	id := uuid.New().String()
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	_, err := dbConn.Exec(
 		`INSERT INTO medicine (id_medicine, medicine_name, id_component, id_laboratory)
@@ -44,8 +43,7 @@ func CreateMedicamento(w http.ResponseWriter, r *http.Request) {
 		id, req.Name, req.IDComponent, req.IDLaboratory,
 	)
 	if err != nil {
-		log.Println("Error inserting medicine:", err)
-		http.Error(w, "Error creating medicine", http.StatusInternalServerError)
+		serverError(w, "insert_medicine", err)
 		return
 	}
 

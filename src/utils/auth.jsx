@@ -1,14 +1,14 @@
-import { API_URL } from "./api";
+import { api } from './api';
 
-export const saveToken = () => {
-  sessionStorage.setItem("loggedIn", "1");
-};
+export async function loginRequest(email, password) {
+  return api.post('/api/auth/login', { email, password });
+}
 
-export const isAuthenticated = () => {
-  return !!sessionStorage.getItem("loggedIn");
-};
+export async function logoutRequest() {
+  return api.post('/api/auth/logout');
+}
 
-export const logout = async () => {
-  await fetch(`${API_URL}/api/logout`, { method: "POST", credentials: "include" });
-  sessionStorage.removeItem("loggedIn");
-};
+export async function fetchMe() {
+  const resp = await api.get('/api/auth/me');
+  return resp.data;
+}

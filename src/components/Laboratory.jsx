@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import "../styles/pacientes.css";
 import "../styles/index.css";
-import { API_URL } from "../utils/api";
+import { API_URL, apiFetch } from "../utils/api";
 import DraggableFormModal from "./DraggableFormModal";
 
 export default function Laboratorios({ showModule, setShowModule, onLaboratorioGuardado, moduleAnimation }) {
@@ -23,9 +23,8 @@ export default function Laboratorios({ showModule, setShowModule, onLaboratorioG
     if (!isValid) { setError("El nombre es obligatorio"); return; }
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/laboratorios`, {
+      const res = await apiFetch(`${API_URL}/api/laboratorios`, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ laboratory_name: nombre.trim() }),
       });

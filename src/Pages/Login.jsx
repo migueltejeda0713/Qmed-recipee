@@ -1,36 +1,52 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../styles/Login.css";
-import { API_URL } from "../utils/api";
-import logo from "../imgs/Logo.jpg";
-import axios from "axios";
-import { saveToken, isAuthenticated } from "../utils/auth";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import '../styles/Login.css';
+import logo from '../imgs/Logo.jpg';
+
+const ERR_MAP = {
+  invalid_credentials: 'Correo o contraseña incorrectos',
+  account_locked: 'Cuenta bloqueada temporalmente. Intenta en 15 minutos.',
+  too_many_attempts: 'Demasiados intentos desde esta red. Intenta en 1 hora.',
+  account_disabled: 'Cuenta inactiva. Contacta al administrador.',
+};
+
+function messageFor(status, code) {
+  if (status === 423) return ERR_MAP.account_locked;
+  if (status === 429) return ERR_MAP.too_many_attempts;
+  if (status === 403) return ERR_MAP.account_disabled;
+  if (status === 401) return ERR_MAP.invalid_credentials;
+  if (code && ERR_MAP[code]) return ERR_MAP[code];
+  return 'Error en el servidor';
+}
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { user, loading, login } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated()) navigate("/");
-  }, [navigate]);
+    if (!loading && user) navigate('/');
+  }, [user, loading, navigate]);
 
-  const handleLogin = async (e) => {
+  async function handleLogin(e) {
     e.preventDefault();
+    setError('');
+    setSubmitting(true);
     try {
-      const response = await axios.post(`${API_URL}/api/login`, { email, password }, { withCredentials: true });
-
-      if (response.data.success) {
-        saveToken();
-        navigate("/");
-      } else {
-        setError("Correo o contraseña incorrectos");
-      }
-    } catch (error) {
-      setError("Error en el servidor", error);
+      await login(email, password);
+      navigate('/');
+    } catch (err) {
+      const status = err?.response?.status;
+      const code = err?.response?.data?.error;
+      setError(messageFor(status, code));
+    } finally {
+      setSubmitting(false);
     }
-  };
+  }
 
   return (
     <div className="login-container">
@@ -52,12 +68,10 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit" className="login-button">
-          Iniciar sesión
+        <button type="submit" className="login-button" disabled={submitting}>
+          {submitting ? 'Verificando…' : 'Iniciar sesión'}
         </button>
-        <a className="forgot-password" href="#">
-          Olvidé mi contraseña
-        </a>
+        <a className="forgot-password" href="#">Olvidé mi contraseña</a>
       </form>
     </div>
   );

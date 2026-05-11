@@ -46,12 +46,10 @@ func SearchMedicamento(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	rows, err := dbConn.Query(baseQuery, args...)
 	if err != nil {
-		log.Println("Search medicine error:", err)
-		http.Error(w, "Error executing search", http.StatusInternalServerError)
+		serverError(w, "search_medicines_query", err)
 		return
 	}
 	defer rows.Close()

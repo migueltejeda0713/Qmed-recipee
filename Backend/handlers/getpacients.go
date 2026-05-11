@@ -18,9 +18,9 @@ const (
 	dateFormat      = "2006-01-02"
 )
 
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
+// ErrorResponse is kept for backward compatibility; new code should use
+// ErrorPayload (defined in errors.go) which also exposes a stable `code`.
+type ErrorResponse = ErrorPayload
 
 func calculateAge(dateStr string) string {
 	t, err := time.Parse(dateFormat, dateStr)
@@ -67,7 +67,6 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 	offset := (page - 1) * limit
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	query := `
 		SELECT
@@ -136,7 +135,11 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"data": patients})
 }
 
+// writeError preserves the legacy signature but now also logs the response
+// to terminal so every error is visible during development.
 func writeError(w http.ResponseWriter, status int, msg string) {
+	log.Printf("[%s] %d %s", callerName(2), status, msg)
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(ErrorResponse{Error: msg})
+	_ = json.NewEncoder(w).Encode(ErrorPayload{Error: msg})
 }

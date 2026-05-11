@@ -6,7 +6,6 @@ import (
 	"Qmed-Recipe/models"
 	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -21,24 +20,22 @@ func InsertPaciente(w http.ResponseWriter, r *http.Request) {
 
 	var input models.PatientInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		clientError(w, http.StatusBadRequest, "invalid_json", "El cuerpo de la solicitud no es JSON válido")
 		return
 	}
 
 	email, ok := r.Context().Value(middleware.DoctorEmailKey).(string)
 	if !ok || email == "" {
-		http.Error(w, "Unauthorized: missing doctor email", http.StatusUnauthorized)
+		clientError(w, http.StatusUnauthorized, "missing_token", "Sesión no válida (email del médico ausente)")
 		return
 	}
 
 	database := db.InitDB()
-	defer database.Close()
 
 	var doctorID string
 	err := database.QueryRow("SELECT BIN_TO_UUID(id_doctor, TRUE) FROM doctor WHERE email = ?", email).Scan(&doctorID)
 	if err != nil {
-		log.Printf("Error getting doctor ID: %v", err)
-		http.Error(w, "Doctor not found", http.StatusUnauthorized)
+		serverError(w, "doctor_lookup", err)
 		return
 	}
 
@@ -51,13 +48,12 @@ func InsertPaciente(w http.ResponseWriter, r *http.Request) {
 			`, input.DocumentID).Scan(&exists)
 
 			if err != nil {
-				log.Printf("Error checking document: %v", err)
-				http.Error(w, "Error checking document", http.StatusInternalServerError)
+				serverError(w, "document_check", err)
 				return
 			}
 
 			if exists > 0 {
-				http.Error(w, "Document ID already registered", http.StatusBadRequest)
+				clientError(w, http.StatusBadRequest, "duplicate_document", "Ya existe un paciente con este documento")
 				return
 			}
 		}
@@ -74,8 +70,7 @@ func InsertPaciente(w http.ResponseWriter, r *http.Request) {
 			newPolicyID, input.IDProvider, input.PolicyNumber,
 		)
 		if err != nil {
-			log.Printf("Error inserting insurance policy: %v", err)
-			http.Error(w, "Error inserting insurance policy", http.StatusInternalServerError)
+			serverError(w, "insert_insurance_policy", err)
 			return
 		}
 		policyID = sql.NullString{String: newPolicyID, Valid: true}
@@ -101,8 +96,7 @@ func InsertPaciente(w http.ResponseWriter, r *http.Request) {
 		)
 	}
 	if execErr != nil {
-		log.Printf("Error inserting patient: %v", execErr)
-		http.Error(w, "Error inserting patient", http.StatusInternalServerError)
+		serverError(w, "insert_patient", execErr)
 		return
 	}
 

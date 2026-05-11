@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "../styles/pacientes.css";
 import "../styles/index.css";
-import { API_URL } from "../utils/api";
+import { API_URL, apiFetch } from "../utils/api";
 import DraggableFormModal from "./DraggableFormModal";
 
 
@@ -136,9 +136,8 @@ export default function Pacientes(props) {
     };
 
     try {
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: isEdit ? "PUT" : "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

@@ -21,29 +21,27 @@ func CreateLaboratorio(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		clientError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Método HTTP no permitido")
 		return
 	}
 
 	var req createLabRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Println("Invalid JSON:", err)
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		log.Printf("CreateLaboratorio: decode err=%v", err)
+		clientError(w, http.StatusBadRequest, "invalid_json", "El cuerpo de la solicitud no es JSON válido")
 		return
 	}
 
 	id := uuid.New().String()
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	_, err := dbConn.Exec(
 		`INSERT INTO laboratory (id_laboratory, laboratory_name) VALUES (UUID_TO_BIN(?, TRUE), ?)`,
 		id, req.Name,
 	)
 	if err != nil {
-		log.Println("Error inserting laboratory:", err)
-		http.Error(w, "Error creating laboratory", http.StatusInternalServerError)
+		serverError(w, "insert_laboratory", err)
 		return
 	}
 

@@ -1,8 +1,10 @@
 // src/components/RecetaForm.jsx
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { api, API_URL } from "../utils/api";
 import axios from "axios";
+import RecipePrintView from "./RecipePrintView";
 import "../styles/RecetaForm.css";
-import { API_URL } from "../utils/api";
 
 function initials(name = "") {
   return name
@@ -85,24 +87,64 @@ const IconPill = () => (
 );
 
 const defaultPresc = () => ({
-  id: Date.now() + Math.random(),
+  localId: Date.now() + Math.random(),
+  serverId: null,
   nombre: "",
   cantidad: "",
   dosis: "",
   modoUso: "",
   saved: false,
+  dirty: false,
 });
 
+function toPrescriptionPayload(p) {
+  return {
+    name: p.nombre.trim(),
+    quantity: p.cantidad.trim(),
+    dosage: p.dosis.trim(),
+    usage_instructions: p.modoUso.trim(),
+  };
+}
+
+function fromServerPrescription(s) {
+  return {
+    localId: s.id,
+    serverId: s.id,
+    nombre: s.name || "",
+    cantidad: s.quantity || "",
+    dosis: s.dosage || "",
+    modoUso: s.usage_instructions || "",
+    saved: true,
+    dirty: false,
+  };
+}
+
 export default function RecetaForm() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const recipeIdFromUrl = searchParams.get("id");
+
+  const [recipeId, setRecipeId] = useState(null);
+  const [status, setStatus] = useState("DRAFT");
+  const [recipeNumber, setRecipeNumber] = useState(null);
+
   const [patient, setPatient] = useState(null);
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [prescriptions, setPrescriptions] = useState([defaultPresc()]);
+  const [generalNotes, setGeneralNotes] = useState("");
   const [toast, setToast] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [printDoc, setPrintDoc] = useState(null);
 
   const debounceRef = useRef(null);
   const searchRef = useRef(null);
+  const blurTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(blurTimerRef.current), []);
+
+  const isDraft = status === "DRAFT";
+  const isIssued = status === "ISSUED" || status === "PRINTED";
 
   const calculateAge = useMemo(() => {
     if (!patient?.fechaNacimiento) return "";
@@ -115,8 +157,55 @@ export default function RecetaForm() {
     return age;
   }, [patient]);
 
-  const blurTimerRef = useRef(null);
-  useEffect(() => () => clearTimeout(blurTimerRef.current), []);
+  const showToast = useCallback((msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3200);
+  }, []);
+
+  // Load existing recipe if ?id= present.
+  useEffect(() => {
+    if (!recipeIdFromUrl) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await api.get(`/api/recipes/${recipeIdFromUrl}`);
+        if (cancelled) return;
+        setRecipeId(data.id);
+        setStatus(data.status);
+        setRecipeNumber(data.recipe_number || null);
+        setGeneralNotes(data.general_notes || "");
+        setPatient({
+          id: data.id_patient,
+          nombre: data.patient_name_snapshot || "",
+          documento: data.patient_document_snapshot || "",
+          fechaNacimiento: "",
+        });
+        // If issued, snapshot has the name; if draft, fetch patient details quickly.
+        if (data.status === "DRAFT") {
+          try {
+            const search = await api.get(`/api/searchpacient`, {
+              params: { id: data.id_patient },
+            });
+            const found = (search.data?.data || []).find((p) => p.id === data.id_patient);
+            if (found) {
+              setPatient({
+                id: found.id,
+                nombre: found.name || "",
+                documento: found.document_id || "",
+                fechaNacimiento: found.birthDate || "",
+              });
+            }
+          } catch { /* non-fatal */ }
+        }
+        const lines = (data.prescriptions || []).map(fromServerPrescription);
+        setPrescriptions(lines.length ? lines : [defaultPresc()]);
+      } catch (err) {
+        console.error(err);
+        showToast("No se pudo cargar la receta");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [recipeIdFromUrl, showToast]);
 
   const fetchRecent = async () => {
     try {
@@ -168,40 +257,123 @@ export default function RecetaForm() {
   };
 
   const clearPatient = () => {
+    if (recipeId) {
+      showToast("No se puede cambiar el paciente de una receta guardada");
+      return;
+    }
     setPatient(null);
     setQuery("");
     setShowDropdown(false);
     setTimeout(() => searchRef.current?.focus(), 50);
   };
 
-  const updateRx = (id, field, value) => {
+  const updateRx = (localId, field, value) => {
     setPrescriptions((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
+      prev.map((p) =>
+        p.localId === localId ? { ...p, [field]: value, dirty: true } : p
+      )
     );
   };
 
-  const saveRx = (id) => {
+  // Save a single prescription card. Handles 3 cases:
+  // - No recipe yet → create recipe with this single line (and any other already-saved lines too).
+  // - Recipe exists, no serverId → POST add line.
+  // - Recipe exists, has serverId, dirty → PUT update line.
+  const saveRx = async (localId) => {
+    const target = prescriptions.find((p) => p.localId === localId);
+    if (!target) return;
+    if (!target.nombre.trim() || !target.cantidad.trim() || !target.dosis.trim()) {
+      showToast("Complete nombre, cantidad y dosis");
+      return;
+    }
+    if (!patient) {
+      showToast("Selecciona un paciente primero");
+      return;
+    }
+    if (!isDraft) {
+      showToast("La receta ya fue emitida");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      if (!recipeId) {
+        const payload = {
+          id_patient: patient.id,
+          general_notes: generalNotes || undefined,
+          prescriptions: [toPrescriptionPayload(target)],
+        };
+        const { data } = await api.post(`/api/recipes`, payload);
+        const newId = data.id_recipe;
+        const newPrescId = (data.prescription_ids || [])[0];
+        setRecipeId(newId);
+        setPrescriptions((prev) =>
+          prev.map((p) =>
+            p.localId === localId
+              ? { ...p, serverId: newPrescId, saved: true, dirty: false }
+              : p
+          )
+        );
+        setSearchParams({ id: newId }, { replace: true });
+        showToast("Borrador creado");
+      } else if (!target.serverId) {
+        const { data } = await api.post(
+          `/api/recipes/${recipeId}/prescriptions`,
+          toPrescriptionPayload(target)
+        );
+        setPrescriptions((prev) =>
+          prev.map((p) =>
+            p.localId === localId
+              ? { ...p, serverId: data.id_prescription, saved: true, dirty: false }
+              : p
+          )
+        );
+        showToast("Prescripción agregada");
+      } else {
+        await api.put(
+          `/api/recipes/${recipeId}/prescriptions/${target.serverId}`,
+          toPrescriptionPayload(target)
+        );
+        setPrescriptions((prev) =>
+          prev.map((p) =>
+            p.localId === localId ? { ...p, saved: true, dirty: false } : p
+          )
+        );
+        showToast("Prescripción actualizada");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(err?.response?.data?.error || "Error al guardar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const editRx = (localId) => {
     setPrescriptions((prev) =>
-      prev.map((p) => {
-        if (p.id !== id) return p;
-        if (!p.nombre.trim() || !p.cantidad.trim() || !p.dosis.trim()) {
-          showToast("Complete nombre, cantidad y dosis");
-          return p;
-        }
-        return { ...p, saved: true };
-      })
+      prev.map((p) => (p.localId === localId ? { ...p, saved: false } : p))
     );
   };
 
-  const editRx = (id) => {
-    setPrescriptions((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, saved: false } : p))
-    );
-  };
-
-  const deleteRx = (id) => {
+  const deleteRx = async (localId) => {
+    const target = prescriptions.find((p) => p.localId === localId);
+    if (!target) return;
+    if (target.serverId && recipeId) {
+      setBusy(true);
+      try {
+        await api.delete(
+          `/api/recipes/${recipeId}/prescriptions/${target.serverId}`
+        );
+      } catch (err) {
+        console.error(err);
+        showToast(err?.response?.data?.error || "Error al eliminar");
+        setBusy(false);
+        return;
+      }
+      setBusy(false);
+    }
     setPrescriptions((prev) => {
-      const updated = prev.filter((p) => p.id !== id);
+      const updated = prev.filter((p) => p.localId !== localId);
       return updated.length ? updated : [defaultPresc()];
     });
   };
@@ -210,35 +382,76 @@ export default function RecetaForm() {
     setPrescriptions((prev) => [...prev, defaultPresc()]);
   };
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3200);
+  const persistNotesIfNeeded = async () => {
+    if (!recipeId) return;
+    try {
+      await api.put(`/api/recipes/${recipeId}`, { general_notes: generalNotes });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!patient) {
-      showToast("Selecciona un paciente primero");
-      return;
-    }
-    const unsaved = prescriptions.filter((p) => !p.saved);
+  const handleSaveDraft = async (e) => {
+    e?.preventDefault();
+    const unsaved = prescriptions.filter(
+      (p) => !p.saved && (p.nombre || p.cantidad || p.dosis)
+    );
     if (unsaved.length > 0) {
-      showToast("Guarda todas las prescripciones antes de continuar");
+      showToast("Guarda cada prescripción individualmente antes de continuar");
       return;
     }
-    console.log({
-      pacienteId: patient.id,
-      patient,
-      edad: calculateAge,
-      prescriptions: prescriptions.filter((p) => p.saved),
-    });
-    showToast("Receta guardada exitosamente");
+    await persistNotesIfNeeded();
+    showToast(recipeId ? "Borrador actualizado" : "Nada para guardar");
+  };
+
+  const handleIssue = async () => {
+    if (!recipeId) {
+      showToast("Guarda al menos una prescripción primero");
+      return;
+    }
+    const hasSavedLine = prescriptions.some((p) => p.serverId);
+    if (!hasSavedLine) {
+      showToast("Agrega al menos una prescripción guardada");
+      return;
+    }
+    setBusy(true);
+    try {
+      await persistNotesIfNeeded();
+      const { data } = await api.post(`/api/recipes/${recipeId}/issue`);
+      setStatus("ISSUED");
+      setRecipeNumber(data.recipe_number);
+      showToast(`Receta emitida (${data.recipe_number})`);
+    } catch (err) {
+      console.error(err);
+      showToast(err?.response?.data?.error || "Error al emitir");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!recipeId || !isIssued) {
+      showToast("Solo se pueden imprimir recetas emitidas");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data } = await api.post(`/api/recipes/${recipeId}/print`);
+      setPrintDoc(data);
+      setStatus((s) => (s === "ISSUED" ? "ISSUED" : s));
+    } catch (err) {
+      console.error(err);
+      showToast(err?.response?.data?.error || "Error al imprimir");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const savedCount = prescriptions.filter((p) => p.saved).length;
   const canAddAnother =
-    prescriptions.length === 0 ||
-    prescriptions[prescriptions.length - 1].saved;
+    isDraft &&
+    (prescriptions.length === 0 ||
+      prescriptions[prescriptions.length - 1].saved);
 
   const todayLabel = new Date().toLocaleDateString("es-CO", {
     day: "2-digit",
@@ -249,11 +462,30 @@ export default function RecetaForm() {
   return (
     <div className="receta-page">
       <div className="page-heading">
-        <h1>Nueva Receta Médica</h1>
-        <p>Complete los datos del paciente y agregue las prescripciones correspondientes.</p>
+        <h1>
+          {isIssued ? "Receta emitida" : recipeId ? "Editar borrador" : "Nueva Receta Médica"}
+        </h1>
+        <p>
+          {isIssued
+            ? `N° ${recipeNumber || ""} — documento inmutable`
+            : "Complete los datos del paciente y agregue las prescripciones correspondientes."}
+        </p>
+        {recipeId && (
+          <button
+            type="button"
+            className="patient-banner-change"
+            style={{ marginTop: 8 }}
+            onClick={() => {
+              setSearchParams({}, { replace: true });
+              navigate("/list-recipes");
+            }}
+          >
+            ← Volver al listado
+          </button>
+        )}
       </div>
 
-      <form className="main-card" onSubmit={handleSubmit}>
+      <form className="main-card" onSubmit={handleSaveDraft}>
         <div className="card-body">
           {/* LEFT: Paciente */}
           <div className="col-left">
@@ -331,13 +563,15 @@ export default function RecetaForm() {
                     <div className="patient-banner-name">{patient.nombre}</div>
                     <div className="patient-banner-meta">{patient.documento || "—"}</div>
                   </div>
-                  <button
-                    type="button"
-                    className="patient-banner-change"
-                    onClick={clearPatient}
-                  >
-                    Cambiar
-                  </button>
+                  {!recipeId && (
+                    <button
+                      type="button"
+                      className="patient-banner-change"
+                      onClick={clearPatient}
+                    >
+                      Cambiar
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -365,6 +599,17 @@ export default function RecetaForm() {
                         {patient.documento || "—"}
                       </div>
                     </div>
+                    <div className="field-group">
+                      <label className="field-label">Observaciones generales</label>
+                      <textarea
+                        className="field-input"
+                        rows={3}
+                        disabled={!isDraft}
+                        placeholder="Notas opcionales sobre la receta…"
+                        value={generalNotes}
+                        onChange={(e) => setGeneralNotes(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </>
               ) : (
@@ -382,8 +627,8 @@ export default function RecetaForm() {
                   <div className="readonly-field">{todayLabel}</div>
                 </div>
                 <div className="field-group">
-                  <label className="field-label">Médico</label>
-                  <div className="readonly-field">Dr. Ramírez</div>
+                  <label className="field-label">Estado</label>
+                  <div className="readonly-field">{status}</div>
                 </div>
               </div>
             </div>
@@ -412,7 +657,7 @@ export default function RecetaForm() {
 
               {prescriptions.map((rx, idx) =>
                 rx.saved ? (
-                  <div key={rx.id} className="rx-card">
+                  <div key={rx.localId} className="rx-card">
                     <div className="rx-card-index">{idx + 1}</div>
                     <div className="rx-card-body">
                       <div className="rx-card-name">{rx.nombre || "—"}</div>
@@ -422,27 +667,31 @@ export default function RecetaForm() {
                       </div>
                       {rx.modoUso && <div className="rx-card-usage">{rx.modoUso}</div>}
                     </div>
-                    <div className="rx-card-actions">
-                      <button
-                        type="button"
-                        className="icon-btn"
-                        title="Editar"
-                        onClick={() => editRx(rx.id)}
-                      >
-                        <IconEdit />
-                      </button>
-                      <button
-                        type="button"
-                        className="icon-btn danger"
-                        title="Eliminar"
-                        onClick={() => deleteRx(rx.id)}
-                      >
-                        <IconTrash />
-                      </button>
-                    </div>
+                    {isDraft && (
+                      <div className="rx-card-actions">
+                        <button
+                          type="button"
+                          className="icon-btn"
+                          title="Editar"
+                          onClick={() => editRx(rx.localId)}
+                          disabled={busy}
+                        >
+                          <IconEdit />
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-btn danger"
+                          title="Eliminar"
+                          onClick={() => deleteRx(rx.localId)}
+                          disabled={busy}
+                        >
+                          <IconTrash />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div key={rx.id} className="rx-edit-block">
+                  <div key={rx.localId} className="rx-edit-block">
                     <div className="rx-edit-block-num">Prescripción {idx + 1}</div>
                     <div className="rx-edit-grid">
                       <div className="field-group span-2">
@@ -451,7 +700,7 @@ export default function RecetaForm() {
                           className="field-input"
                           placeholder="Ej. Amoxicilina 500mg"
                           value={rx.nombre}
-                          onChange={(e) => updateRx(rx.id, "nombre", e.target.value)}
+                          onChange={(e) => updateRx(rx.localId, "nombre", e.target.value)}
                         />
                       </div>
                       <div className="field-group">
@@ -460,7 +709,7 @@ export default function RecetaForm() {
                           className="field-input"
                           placeholder="Ej. 30 cápsulas"
                           value={rx.cantidad}
-                          onChange={(e) => updateRx(rx.id, "cantidad", e.target.value)}
+                          onChange={(e) => updateRx(rx.localId, "cantidad", e.target.value)}
                         />
                       </div>
                       <div className="field-group">
@@ -469,7 +718,7 @@ export default function RecetaForm() {
                           className="field-input"
                           placeholder="Ej. 1 c/8h"
                           value={rx.dosis}
-                          onChange={(e) => updateRx(rx.id, "dosis", e.target.value)}
+                          onChange={(e) => updateRx(rx.localId, "dosis", e.target.value)}
                         />
                       </div>
                       <div className="field-group span-2">
@@ -478,7 +727,7 @@ export default function RecetaForm() {
                           className="field-input"
                           placeholder="Instrucciones adicionales (opcional)"
                           value={rx.modoUso}
-                          onChange={(e) => updateRx(rx.id, "modoUso", e.target.value)}
+                          onChange={(e) => updateRx(rx.localId, "modoUso", e.target.value)}
                         />
                       </div>
                     </div>
@@ -487,7 +736,8 @@ export default function RecetaForm() {
                         <button
                           type="button"
                           className="rx-delete-btn"
-                          onClick={() => deleteRx(rx.id)}
+                          onClick={() => deleteRx(rx.localId)}
+                          disabled={busy}
                         >
                           <IconTrash /> Eliminar
                         </button>
@@ -495,7 +745,8 @@ export default function RecetaForm() {
                       <button
                         type="button"
                         className="rx-save-btn"
-                        onClick={() => saveRx(rx.id)}
+                        onClick={() => saveRx(rx.localId)}
+                        disabled={busy}
                       >
                         <IconCheck /> Guardar
                       </button>
@@ -504,25 +755,50 @@ export default function RecetaForm() {
                 )
               )}
 
-              <button
-                type="button"
-                className="add-rx-btn"
-                onClick={addRx}
-                disabled={!canAddAnother}
-              >
-                <IconPlus /> Agregar prescripción
-              </button>
+              {isDraft && (
+                <button
+                  type="button"
+                  className="add-rx-btn"
+                  onClick={addRx}
+                  disabled={!canAddAnother || busy}
+                >
+                  <IconPlus /> Agregar prescripción
+                </button>
+              )}
             </div>
           </div>
         </div>
 
         <div className="card-footer">
-          <button type="button" className="btn-secondary">
-            <IconPrint /> Imprimir
-          </button>
-          <button type="submit" className="btn-primary-rx">
-            <IconSave /> Guardar receta
-          </button>
+          {isIssued ? (
+            <button
+              type="button"
+              className="btn-primary-rx"
+              onClick={handlePrint}
+              disabled={busy}
+            >
+              <IconPrint /> Imprimir
+            </button>
+          ) : (
+            <>
+              <button
+                type="submit"
+                className="btn-secondary"
+                disabled={busy}
+              >
+                <IconSave /> Guardar borrador
+              </button>
+              <button
+                type="button"
+                className="btn-primary-rx"
+                onClick={handleIssue}
+                disabled={busy || !recipeId}
+                title={!recipeId ? "Guarda al menos una prescripción primero" : ""}
+              >
+                <IconCheck /> Emitir receta
+              </button>
+            </>
+          )}
         </div>
       </form>
 
@@ -531,6 +807,10 @@ export default function RecetaForm() {
           <span className="toast-icon"><IconCheck /></span>
           {toast}
         </div>
+      )}
+
+      {printDoc && (
+        <RecipePrintView document={printDoc} onClose={() => setPrintDoc(null)} />
       )}
     </div>
   );

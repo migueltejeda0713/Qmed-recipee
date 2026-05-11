@@ -1,15 +1,19 @@
 import { forwardRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/listpacients.css";
 import Loading from "./Loading";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
 import EditIcon from "../svg/edit-3-svgrepo-com.svg";
 import ViewIcon from "../svg/zoom-in-svgrepo-com.svg";
 import SearchIcon from "../svg/search-left-1504-svgrepo-com.svg";
-import { API_URL } from "../utils/api";
+import { API_URL, apiFetch } from "../utils/api";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { usePaginatedList } from "../hooks/usePaginatedList";
 
 const ListMedicines = forwardRef((_props, ref) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { toRender, setItems, loading, loadDuration, hasMore, page, searchTerm, setSearchTerm, fetchItems } =
     usePaginatedList({
       ref,
@@ -21,17 +25,16 @@ const ListMedicines = forwardRef((_props, ref) => {
 
   const handleDelete = (id) =>
     confirmDialog({
-      message: "¿Estás seguro de que deseas eliminar este medicamento?",
-      header: "Eliminar medicamento",
+      message: "¿Estás seguro de que deseas inactivar este medicamento?",
+      header: "Inactivar medicamento",
       icon: "pi pi-exclamation-triangle",
-      acceptLabel: "Eliminar",
+      acceptLabel: "Inactivar",
       rejectLabel: "Cancelar",
       accept: async () => {
         try {
           setItems((prev) => prev.filter((m) => m.id_medicine !== id));
-          const res = await fetch(`${API_URL}/api/deletemedicamento/${id}`, {
+          const res = await apiFetch(`${API_URL}/api/deletemedicamento/${id}`, {
             method: "DELETE",
-            credentials: "include",
           });
           if (!res.ok) throw new Error();
         } catch {
@@ -84,14 +87,24 @@ const ListMedicines = forwardRef((_props, ref) => {
                 <td>{med.component_name}</td>
                 <td>{med.laboratory_name}</td>
                 <td className="actions-cell">
-                  <button className="btn btn-edit" onClick={() => {}}>
+                  <button
+                    className="btn btn-view"
+                    onClick={() =>
+                      navigate("/viewmedicamento", { state: { medicamento: med, background: location } })
+                    }
+                  >
+                    <img src={ViewIcon} alt="Ver" width={20} height={20} />
+                  </button>
+                  <button
+                    className="btn btn-edit"
+                    onClick={() =>
+                      navigate("/medicamentos/edit", { state: { medicamento: med, background: location } })
+                    }
+                  >
                     <img src={EditIcon} alt="Editar" width={20} height={20} />
                   </button>
                   <button className="btn btn-delete" onClick={() => handleDelete(med.id_medicine)}>
-                    <img src={DeleteIcon} alt="Eliminar" width={20} height={20} />
-                  </button>
-                  <button className="btn btn-view" onClick={() => {}}>
-                    <img src={ViewIcon} alt="Ver" width={20} height={20} />
+                    <img src={DeleteIcon} alt="Inactivar" width={20} height={20} />
                   </button>
                 </td>
               </tr>

@@ -12,7 +12,15 @@ import (
 
 var DB *sql.DB
 
+// InitDB returns the shared *sql.DB pool, initializing it once on first call.
+// IMPORTANT: callers must NEVER `defer db.Close()` on the returned pool — it
+// is shared process-wide (used by middleware and every handler). Closing it
+// from a handler tears down the pool for the rest of the application.
 func InitDB() *sql.DB {
+	if DB != nil {
+		return DB
+	}
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error al cargar el archivo .env: ", err)

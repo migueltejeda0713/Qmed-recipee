@@ -3,7 +3,6 @@ package handlers
 import (
 	"Qmed-Recipe/db"
 	"Qmed-Recipe/middleware"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -19,15 +18,13 @@ func DeletePaciente(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method != http.MethodDelete {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		log.Printf("[DeletePaciente] Method not allowed: %s", r.Method)
+		clientError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Método HTTP no permitido")
 		return
 	}
 
 	email, _ := r.Context().Value(middleware.DoctorEmailKey).(string)
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	query := `
 		DELETE FROM patient
@@ -36,15 +33,13 @@ func DeletePaciente(w http.ResponseWriter, r *http.Request) {
 	`
 	result, err := dbConn.Exec(query, idPatient, email)
 	if err != nil {
-		http.Error(w, "Error deleting patient", http.StatusInternalServerError)
-		log.Printf("[DeletePaciente] Error executing DELETE: %v", err)
+		serverError(w, "delete_patient", err)
 		return
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		http.Error(w, "Patient not found", http.StatusNotFound)
-		log.Printf("[DeletePaciente] Patient with ID %s not found", idPatient)
+		clientError(w, http.StatusNotFound, "patient_not_found", "El paciente no existe o no pertenece a este médico")
 		return
 	}
 

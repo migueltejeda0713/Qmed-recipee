@@ -6,7 +6,7 @@ import DeleteIcon from "../svg/delete-svgrepo-com.svg";
 import EditIcon from "../svg/edit-3-svgrepo-com.svg";
 import ViewIcon from "../svg/zoom-in-svgrepo-com.svg";
 import SearchIcon from "../svg/search-left-1504-svgrepo-com.svg";
-import { API_URL } from "../utils/api";
+import { API_URL, apiFetch } from "../utils/api";
 import PacienteDetalleModal from "../components/Pacientdetails";
 import { getAllPacientes, savePacientes, deletePacienteIndexed } from "../utils/indexedDB";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
@@ -35,9 +35,8 @@ const ListPacients = forwardRef((props, ref) => {
     try {
       await deletePacienteIndexed(id);
       setItems((prev) => prev.filter((p) => p.id !== id));
-      const res = await fetch(`${API_URL}/api/deletepacient/${id}`, {
+      const res = await apiFetch(`${API_URL}/api/deletepacient/${id}`, {
         method: "DELETE",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error();
@@ -49,10 +48,10 @@ const ListPacients = forwardRef((props, ref) => {
 
   const confirmDelete = (id) =>
     confirmDialog({
-      message: "¿Estás seguro de que deseas eliminar este paciente?",
-      header: "Eliminar paciente",
+      message: "¿Estás seguro de que deseas inactivar este paciente?",
+      header: "Inactivar paciente",
       icon: "pi pi-exclamation-triangle",
-      acceptLabel: "Eliminar",
+      acceptLabel: "Inactivar",
       rejectLabel: "Cancelar",
       accept: () => handleDelete(id),
     });
@@ -109,17 +108,6 @@ const ListPacients = forwardRef((props, ref) => {
                 <td>{paciente.phone}</td>
                 <td className="actions-cell">
                   <button
-                    className="btn btn-edit"
-                    onClick={() =>
-                      navigate("/editpacient", { state: { paciente, background: location } })
-                    }
-                  >
-                    <img src={EditIcon} alt="Editar" width={20} height={20} />
-                  </button>
-                  <button className="btn btn-delete" onClick={() => confirmDelete(paciente.id)}>
-                    <img src={DeleteIcon} alt="Eliminar" width={20} height={20} />
-                  </button>
-                  <button
                     className="btn btn-view"
                     onClick={(e) => {
                       e?.preventDefault();
@@ -128,7 +116,18 @@ const ListPacients = forwardRef((props, ref) => {
                       setModuleAnimation(true);
                     }}
                   >
-                    <img src={ViewIcon} alt="Ver datos" width={20} height={20} />
+                    <img src={ViewIcon} alt="Ver" width={20} height={20} />
+                  </button>
+                  <button
+                    className="btn btn-edit"
+                    onClick={() =>
+                      navigate("/editpacient", { state: { paciente, background: location } })
+                    }
+                  >
+                    <img src={EditIcon} alt="Editar" width={20} height={20} />
+                  </button>
+                  <button className="btn btn-delete" onClick={() => confirmDelete(paciente.id)}>
+                    <img src={DeleteIcon} alt="Inactivar" width={20} height={20} />
                   </button>
                 </td>
               </tr>

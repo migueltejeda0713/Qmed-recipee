@@ -47,12 +47,10 @@ func SearchComponente(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbConn := db.InitDB()
-	defer dbConn.Close()
 
 	rows, err := dbConn.Query(baseQuery, args...)
 	if err != nil {
-		log.Printf("Search error: %v\n", err)
-		http.Error(w, "Error executing search", http.StatusInternalServerError)
+		serverError(w, "search_components_query", err)
 		return
 	}
 	defer rows.Close()
