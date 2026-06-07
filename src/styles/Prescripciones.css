@@ -1,0 +1,25 @@
+/* ============================================
+   Prescripciones — catálogo de plantillas
+   ============================================ */
+
+.prescripciones-page {
+  width: 100%;
+  flex: 1;
+  padding: 28px 32px;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--divider);
+  box-shadow: var(--shadow-lg);
+  box-sizing: border-box;
+  font-family: var(--font);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.presc-list-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  align-self: center;
+}

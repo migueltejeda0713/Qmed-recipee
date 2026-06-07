@@ -48,6 +48,12 @@ const ListMedicines = forwardRef((_props, ref) => {
     <div className="list-pacientes">
       <h2 className="paciente-titulo">Lista de Medicamentos</h2>
       <header className="header-list-pacientes">
+        <button
+          className="btn btn-addPatient"
+          onClick={() => navigate("/medicamentos/add", { state: { background: location } })}
+        >
+          Agregar medicamento
+        </button>
         <div className="search-container">
           <input
             type="text"

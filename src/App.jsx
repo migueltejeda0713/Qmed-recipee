@@ -19,6 +19,7 @@ import Medicamentos from "./components/Medicamentos";
 import ListLaboratories from "./components/List-Laboratories";
 import ListMedicines from "./components/List-medications";
 import ListRecipes from "./components/List-Recipes";
+import Prescripciones from "./components/Prescripciones";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -80,6 +81,7 @@ function ProtectedShell({ paciente, setPaciente }) {
           <Route path="/list-pacients" element={<ListaPacientes setPaciente={setPaciente} />} />
           <Route path="/list-componentes" element={<ListComponents />} />
           <Route path="/list-recipes" element={<ListRecipes />} />
+          <Route path="/prescripciones" element={<Prescripciones />} />
           <Route path="/list-medicines" element={<ListMedicines />} />
           <Route path="/list-laboratories" element={<ListLaboratories />} />
           <Route path="*" element={<RecetaForm />} />

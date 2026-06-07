@@ -100,6 +100,10 @@ func RegisterRoutes(r *mux.Router) {
 		{"/api/deletecomponente/{id}", handlers.SoftDeleteComponente, []string{"DELETE", "OPTIONS"}},
 		{"/api/componentes", handlers.CreateComponente, []string{"POST", "OPTIONS"}},
 
+		// Prescription templates
+		{"/api/prescription-templates", handlers.CreatePrescriptionTemplate, []string{"POST", "OPTIONS"}},
+		{"/api/prescription-templates/{id}/inactivate", handlers.InactivatePrescriptionTemplate, []string{"PUT", "OPTIONS"}},
+
 		// Recipes
 		{"/api/recipes", handlers.CreateRecipe, []string{"POST", "OPTIONS"}},
 		{"/api/recipes/{id}", handlers.UpdateRecipe, []string{"PUT", "OPTIONS"}},
@@ -121,6 +125,9 @@ func RegisterRoutes(r *mux.Router) {
 		{"/api/searchlaboratorio", handlers.SearchLaboratorio, []string{"GET", "OPTIONS"}},
 		{"/api/getmedicines", handlers.GetMedicamentos, []string{"GET", "OPTIONS"}},
 		{"/api/searchmedicamento", handlers.SearchMedicamento, []string{"GET", "OPTIONS"}},
+
+		// Prescription templates
+		{"/api/prescription-templates", handlers.ListPrescriptionTemplates, []string{"GET", "OPTIONS"}},
 
 		// Recipes
 		{"/api/recipes", handlers.ListRecipes, []string{"GET", "OPTIONS"}},

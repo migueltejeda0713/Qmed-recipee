@@ -141,7 +141,10 @@ export default function RecetaForm() {
   const debounceRef = useRef(null);
   const searchRef = useRef(null);
   const blurTimerRef = useRef(null);
-  useEffect(() => () => clearTimeout(blurTimerRef.current), []);
+  const tplDebounceRef = useRef(null);
+  const [templateSuggestions, setTemplateSuggestions] = useState([]);
+  const [activeTplLocalId, setActiveTplLocalId] = useState(null);
+  useEffect(() => () => { clearTimeout(blurTimerRef.current); clearTimeout(tplDebounceRef.current); }, []);
 
   const isDraft = status === "DRAFT";
   const isIssued = status === "ISSUED" || status === "PRINTED";
@@ -376,6 +379,31 @@ export default function RecetaForm() {
       const updated = prev.filter((p) => p.localId !== localId);
       return updated.length ? updated : [defaultPresc()];
     });
+  };
+
+  const handleNombreChange = (localId, value) => {
+    updateRx(localId, "nombre", value);
+    setActiveTplLocalId(localId);
+    clearTimeout(tplDebounceRef.current);
+    if (!value.trim()) { setTemplateSuggestions([]); return; }
+    tplDebounceRef.current = setTimeout(async () => {
+      try {
+        const { data } = await api.get("/api/prescription-templates", { params: { q: value } });
+        setTemplateSuggestions(data?.data || []);
+      } catch { setTemplateSuggestions([]); }
+    }, 300);
+  };
+
+  const selectTemplate = (localId, tpl) => {
+    setPrescriptions((prev) =>
+      prev.map((p) =>
+        p.localId === localId
+          ? { ...p, nombre: tpl.medicine_name, dosis: tpl.dosage, modoUso: tpl.usage_instructions || "", dirty: true }
+          : p
+      )
+    );
+    setTemplateSuggestions([]);
+    setActiveTplLocalId(null);
   };
 
   const addRx = () => {
@@ -694,14 +722,33 @@ export default function RecetaForm() {
                   <div key={rx.localId} className="rx-edit-block">
                     <div className="rx-edit-block-num">Prescripción {idx + 1}</div>
                     <div className="rx-edit-grid">
-                      <div className="field-group span-2">
+                      <div className="field-group span-2" style={{ position: "relative" }}>
                         <label className="field-label">Medicamento</label>
                         <input
                           className="field-input"
                           placeholder="Ej. Amoxicilina 500mg"
                           value={rx.nombre}
-                          onChange={(e) => updateRx(rx.localId, "nombre", e.target.value)}
+                          onChange={(e) => handleNombreChange(rx.localId, e.target.value)}
+                          onBlur={() => setTimeout(() => { setTemplateSuggestions([]); setActiveTplLocalId(null); }, 150)}
+                          autoComplete="off"
                         />
+                        {activeTplLocalId === rx.localId && templateSuggestions.length > 0 && (
+                          <ul className="rx-dropdown" style={{ top: "100%", marginTop: 4 }}>
+                            {templateSuggestions.map((tpl) => (
+                              <li
+                                key={tpl.id}
+                                className="rx-dropdown-item"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => selectTemplate(rx.localId, tpl)}
+                              >
+                                <div>
+                                  <div className="dropdown-item-name">{tpl.medicine_name}</div>
+                                  <div className="dropdown-item-meta">{tpl.dosage}</div>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                       <div className="field-group">
                         <label className="field-label">Cantidad</label>

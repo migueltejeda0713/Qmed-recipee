@@ -16,6 +16,7 @@ import {
   Pill,
   ClipboardList,
   CirclePlus,
+  Stethoscope,
 } from "lucide-react";
 import "../styles/sidebar.css";
 import { useAuth } from "../context/AuthContext";
@@ -78,6 +79,14 @@ export default function SidebarMenu() {
             </span>
           ),
           command: () => navigate("/list-recipes"),
+        },
+        {
+          label: (
+            <span className={`menu-label${isActive(['/prescripciones']) ? ' active' : ''}`}>
+              <Stethoscope size={16} style={iconStyle} /> Prescripciones
+            </span>
+          ),
+          command: () => navigate("/prescripciones"),
         },
       ],
     },
