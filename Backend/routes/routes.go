@@ -3,6 +3,8 @@ package routes
 import (
 	"net"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,6 +17,20 @@ import (
 )
 
 var blockedIPs sync.Map
+
+// trustedProxies contiene las IPs de proxies de confianza definidas en TRUSTED_PROXIES
+// (separadas por coma). Solo si la petición llega desde una de estas IPs se leen
+// los headers X-Real-IP / X-Forwarded-For; de lo contrario se usa RemoteAddr directo.
+// Ejemplo: TRUSTED_PROXIES=127.0.0.1,10.0.0.1
+var trustedProxies = func() map[string]bool {
+	m := map[string]bool{}
+	for _, ip := range strings.Split(os.Getenv("TRUSTED_PROXIES"), ",") {
+		if t := strings.TrimSpace(ip); t != "" {
+			m[t] = true
+		}
+	}
+	return m
+}()
 
 func blockIP(ip string) {
 	blockedIPs.Store(ip, time.Now().Add(time.Hour))
@@ -40,14 +56,16 @@ func BlockedIPMiddleware(next http.Handler) http.Handler {
 }
 
 func getIP(r *http.Request) string {
-	ip := r.Header.Get("X-Real-IP")
-	if ip == "" {
-		ip = r.Header.Get("X-Forwarded-For")
+	remoteIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+	if trustedProxies[remoteIP] {
+		if ip := r.Header.Get("X-Real-IP"); ip != "" {
+			return strings.TrimSpace(ip)
+		}
+		if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
+			return strings.TrimSpace(strings.SplitN(ip, ",", 2)[0])
+		}
 	}
-	if ip == "" {
-		ip, _, _ = net.SplitHostPort(r.RemoteAddr)
-	}
-	return ip
+	return remoteIP
 }
 
 func RegisterRoutes(r *mux.Router) {
@@ -66,9 +84,6 @@ func RegisterRoutes(r *mux.Router) {
 	r.Handle("/api/auth/refresh", http.HandlerFunc(handlers.AuthRefresh)).Methods("POST", "OPTIONS")
 	r.Handle("/api/auth/logout", http.HandlerFunc(handlers.AuthLogout)).Methods("POST", "OPTIONS")
 	r.Handle("/api/auth/me", middleware.ValidateJWT(http.HandlerFunc(handlers.AuthMe))).Methods("GET", "OPTIONS")
-
-	r.Handle("/api/login", loginRateLimited).Methods("POST", "OPTIONS")
-	r.Handle("/api/logout", http.HandlerFunc(handlers.LogoutDoctor)).Methods("POST", "OPTIONS")
 
 	type route struct {
 		Path    string

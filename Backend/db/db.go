@@ -35,8 +35,9 @@ func InitDB() *sql.DB {
 
 	// Configurar conexión TLS si SSL está requerido
 	if dbSSLMode == "required" {
+		skipVerify := os.Getenv("APP_ENV") != "production"
 		err := mysql.RegisterTLSConfig("custom", &tls.Config{
-			InsecureSkipVerify: true, // Acepta cualquier certificado (útil en entornos no productivos)
+			InsecureSkipVerify: skipVerify,
 		})
 		if err != nil {
 			log.Fatal("Error registrando configuración TLS: ", err)

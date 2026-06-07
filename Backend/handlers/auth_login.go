@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"Qmed-Recipe/auth"
@@ -18,17 +19,33 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const dummyHash = "$2a$12$dummyhashfortimingnoop000000000000000000000000000000000"
+// Hash bcrypt válido (cost 12) para normalizar tiempos de respuesta en rutas
+// de error de login sin revelar si el email existe en la BD.
+const dummyHash = "$2a$12$R9h7cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jKMUe"
+
+// trustedHandlerProxies carga las IPs de proxies de confianza desde TRUSTED_PROXIES.
+// Solo se leen X-Real-IP / X-Forwarded-For si la petición llega desde una de estas IPs.
+var trustedHandlerProxies = func() map[string]bool {
+	m := map[string]bool{}
+	for _, ip := range strings.Split(os.Getenv("TRUSTED_PROXIES"), ",") {
+		if t := strings.TrimSpace(ip); t != "" {
+			m[t] = true
+		}
+	}
+	return m
+}()
 
 func clientIP(r *http.Request) string {
-	ip := r.Header.Get("X-Real-IP")
-	if ip == "" {
-		ip = r.Header.Get("X-Forwarded-For")
+	remoteIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+	if trustedHandlerProxies[remoteIP] {
+		if ip := r.Header.Get("X-Real-IP"); ip != "" {
+			return strings.TrimSpace(ip)
+		}
+		if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
+			return strings.TrimSpace(strings.SplitN(ip, ",", 2)[0])
+		}
 	}
-	if ip == "" {
-		ip, _, _ = net.SplitHostPort(r.RemoteAddr)
-	}
-	return ip
+	return remoteIP
 }
 
 func writeAuthError(w http.ResponseWriter, status int, code string, retryAfter int) {

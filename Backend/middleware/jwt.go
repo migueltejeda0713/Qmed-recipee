@@ -118,14 +118,3 @@ func ValidateJWT(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
-
-// GenerateJWT kept for backwards compat during rollout; will be removed after
-// /api/login alias is deleted.
-func GenerateJWT(email string) (string, error) {
-	claims := jwt.MapClaims{
-		"email": email,
-		"exp":   jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
-	}
-	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return tok.SignedString(jwtSecret)
-}
