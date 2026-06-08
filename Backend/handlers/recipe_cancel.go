@@ -40,7 +40,7 @@ func CancelRecipe(w http.ResponseWriter, r *http.Request) {
 		writeRecipeError(w, err)
 		return
 	}
-	if status != StatusIssued {
+	if status != StatusIssued && status != StatusPrinted {
 		clientError(w, http.StatusConflict, "recipe_not_issued", "Solo se pueden cancelar recetas emitidas")
 		return
 	}
@@ -48,8 +48,8 @@ func CancelRecipe(w http.ResponseWriter, r *http.Request) {
 	res, err := database.Exec(
 		`UPDATE recipe
 		 SET row_status_id = ?, cancelled_at = CURRENT_TIMESTAMP, cancellation_reason = ?
-		 WHERE id_recipe = UUID_TO_BIN(?, TRUE) AND row_status_id = ?`,
-		StatusCancelled, reason, recipeID, StatusIssued,
+		 WHERE id_recipe = UUID_TO_BIN(?, TRUE) AND row_status_id IN (?, ?)`,
+		StatusCancelled, reason, recipeID, StatusIssued, StatusPrinted,
 	)
 	if err != nil {
 		serverError(w, "cancel_recipe", err)
@@ -60,5 +60,6 @@ func CancelRecipe(w http.ResponseWriter, r *http.Request) {
 		clientError(w, http.StatusConflict, "state_changed", "El estado de la receta cambió; recarga e intenta de nuevo")
 		return
 	}
+	logRecipeEvent(database, recipeID, doctorID, EventCancelled)
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Recipe cancelled", "status": "CANCELLED"})
 }

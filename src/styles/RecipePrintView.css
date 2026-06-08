@@ -1,179 +1,464 @@
-.rx-print-backdrop {
+/* ═══════════════════════════════════════════════════════
+   RecipePrintView — medical letterhead print document
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  --rv-blue:   #212c45;
+  --rv-blue2:  #2e3f64;
+  --rv-accent: #3a5daa;
+  --rv-gray:   #64748b;
+  --rv-muted:  #94a3b8;
+  --rv-divider:#cbd5e1;
+  --rv-bg:     #f1f5f9;
+  --rv-font:   'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  --rv-serif:  'Spectral', Georgia, serif;
+}
+
+/* ── Full-screen container ─────────────────────────────── */
+.rpv-screen {
   position: fixed;
   inset: 0;
-  background: oklch(20% 0.02 245 / 0.55);
   z-index: 9999;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 32px 16px;
-  overflow-y: auto;
-  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  flex-direction: column;
+  background: var(--rv-bg);
+  font-family: var(--rv-font);
+  -webkit-font-smoothing: antialiased;
 }
 
-.rx-print-sheet {
-  background: #fff;
-  color: #111;
-  width: min(800px, 100%);
-  padding: 40px 48px;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-}
-
-.rx-print-toolbar {
+/* ── Toolbar ───────────────────────────────────────────── */
+.rpv-toolbar {
+  flex-shrink: 0;
+  height: 56px;
+  background: var(--rv-blue);
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-
-.rx-print-toolbar button {
-  font-family: inherit;
-  font-size: 13px;
-  border-radius: 8px;
-  padding: 8px 14px;
-  cursor: pointer;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-}
-
-.rx-print-trigger {
-  background: oklch(50% 0.19 245) !important;
-  color: #fff;
-  border-color: transparent !important;
-}
-
-.rx-doc-header {
-  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-end;
-  border-bottom: 2px solid #111;
-  padding-bottom: 12px;
-  margin-bottom: 24px;
+  padding: 0 24px;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.22);
 }
 
-.rx-doc-title {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+.rpv-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-.rx-doc-number {
-  font-size: 14px;
-  color: #555;
-  margin-top: 4px;
-  font-variant-numeric: tabular-nums;
+.rpv-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.rx-doc-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  margin-bottom: 28px;
-}
-
-.rx-doc-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #777;
+.rpv-toolbar-title {
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 4px;
+  color: rgba(255,255,255,.65);
+  letter-spacing: .02em;
+  white-space: nowrap;
 }
 
-.rx-doc-value {
-  font-size: 15px;
-  font-weight: 600;
+/* Paper-size segmented control */
+.rpv-paper-seg {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
 }
 
-.rx-doc-sub {
+.rpv-paper-seg button {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,.65);
+  font-family: var(--rv-font);
   font-size: 12px;
-  color: #666;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 140ms, color 140ms;
+  border-right: 1px solid rgba(255,255,255,.14);
+}
+.rpv-paper-seg button:last-child { border-right: none; }
+.rpv-paper-seg button:hover  { background: rgba(255,255,255,.12); color: #fff; }
+.rpv-paper-seg button.active { background: rgba(255,255,255,.22); color: #fff; }
+
+.rpv-btn-close {
+  background: rgba(255,255,255,.10);
+  border: 1.5px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.75);
+  font-family: var(--rv-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 140ms;
+}
+.rpv-btn-close:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+.rpv-btn-print {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: none;
+  color: var(--rv-blue);
+  font-family: var(--rv-font);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 140ms, box-shadow 140ms;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.rpv-btn-print:hover {
+  background: #f0f4ff;
+  box-shadow: 0 4px 14px rgba(0,0,0,.20);
+}
+
+/* ── Scrollable area ───────────────────────────────────── */
+.rpv-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 24px 56px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Paper sheet ───────────────────────────────────────── */
+.rpv-paper {
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.06),
+    0 12px 40px rgba(0,0,0,.14),
+    0 4px 12px rgba(0,0,0,.08);
+  border-radius: 3px;
+  padding: 14mm 14mm 12mm;
+  box-sizing: border-box;
+  font-family: var(--rv-font);
+  font-size: 9pt;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+/* Paper sizes — screen preview */
+.rpv-paper-media { width: 139.7mm; min-height: 215.9mm; }
+.rpv-paper-a5    { width: 148mm;   min-height: 210mm;   }
+.rpv-paper-carta { width: 215.9mm; min-height: 279.4mm; }
+
+/* ── Membrete (letterhead) ─────────────────────────────── */
+.rpv-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5mm;
+}
+
+.rpv-head-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rpv-rx-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: var(--rv-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.rpv-doc-name {
+  font-family: var(--rv-serif);
+  font-size: 16pt;
+  font-weight: 700;
+  color: var(--rv-blue);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+
+.rpv-doc-spec {
+  font-size: 8pt;
+  font-weight: 600;
+  color: var(--rv-accent);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-top: 3px;
+}
+
+/* Credentials block (right side of membrete) */
+.rpv-creds {
+  text-align: right;
+  font-size: 7.5pt;
+  color: var(--rv-gray);
+  line-height: 1.55;
+  flex-shrink: 0;
+}
+
+.rpv-folio {
+  font-size: 8pt;
+  font-weight: 700;
+  color: var(--rv-blue);
+  margin-bottom: 2px;
+  letter-spacing: .04em;
+}
+
+/* ── Rules ─────────────────────────────────────────────── */
+.rpv-rule {
+  border: none;
+  border-top: 2px solid var(--rv-blue);
+  margin: 0 0 4mm 0;
+}
+
+.rpv-rule-thin {
+  border: none;
+  border-top: 1px solid var(--rv-divider);
+  margin: 4mm 0 3mm;
+}
+
+/* ── Patient band ──────────────────────────────────────── */
+.rpv-patient {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4mm;
+  border: 1px solid var(--rv-divider);
+  border-radius: 5px;
+  padding: 3mm 4mm;
+  background: #f8fafc;
+}
+
+.rpv-pt-left { flex: 1; min-width: 0; }
+
+.rpv-pt-label {
+  font-size: 6.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--rv-muted);
+  display: inline-block;
+  margin-right: 4px;
+}
+
+.rpv-pt-name {
+  font-size: 11.5pt;
+  font-weight: 700;
+  color: var(--rv-blue);
+  letter-spacing: -.01em;
+}
+
+.rpv-pt-nameline {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.rpv-pt-sub {
+  font-size: 7.5pt;
+  color: var(--rv-gray);
   margin-top: 2px;
 }
 
-.rx-doc-presc h3 {
-  font-size: 14px;
-  margin: 0 0 12px 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #333;
+.rpv-pt-date {
+  font-size: 8pt;
+  color: var(--rv-gray);
+  white-space: nowrap;
+  text-align: right;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
 }
 
-.rx-doc-presc ol {
-  padding-left: 20px;
-  margin: 0;
+/* ── Diagnóstico / observaciones ───────────────────────── */
+.rpv-dx {
+  font-size: 8pt;
+  color: #475569;
+  margin-bottom: 4mm;
+  padding: 2.5mm 3.5mm;
+  border-left: 2.5px solid var(--rv-accent);
+  border-radius: 0 4px 4px 0;
+  background: #f0f4ff;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
-.rx-doc-presc li {
-  margin-bottom: 14px;
+.rpv-dx-text {
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ── Rp. section ───────────────────────────────────────── */
+.rpv-rp {
+  display: flex;
+  align-items: flex-start;
+  gap: 6mm;
+  margin-bottom: 5mm;
+}
+
+.rpv-rp-symbol {
+  font-family: var(--rv-serif);
+  font-size: 22pt;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--rv-blue);
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 1mm;
+}
+
+.rpv-rx-items {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4mm;
+}
+
+.rpv-rx-item {
   page-break-inside: avoid;
 }
 
-.rx-presc-name {
+.rpv-rx-drug {
+  font-size: 10.5pt;
   font-weight: 700;
-  font-size: 15px;
+  color: #1e293b;
+  letter-spacing: -.01em;
+  line-height: 1.2;
 }
 
-.rx-presc-meta {
+.rpv-rx-line {
+  font-size: 8pt;
+  color: var(--rv-gray);
+  margin-top: 1.5mm;
   display: flex;
-  gap: 24px;
-  font-size: 13px;
-  color: #333;
-  margin-top: 2px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.rx-presc-usage {
-  font-size: 13px;
-  color: #444;
+.rpv-rx-line b {
+  color: var(--rv-blue2);
+  font-weight: 600;
+}
+
+.rpv-rx-usage {
+  font-size: 7.5pt;
+  color: var(--rv-muted);
   font-style: italic;
-  margin-top: 2px;
+  margin-top: 1.5mm;
+  line-height: 1.5;
 }
 
-.rx-doc-notes {
-  margin-top: 24px;
-  padding: 12px 16px;
-  background: #f9fafb;
-  border-left: 3px solid #999;
-  border-radius: 4px;
-  font-size: 13px;
+/* ── Footer ────────────────────────────────────────────── */
+.rpv-foot {
+  margin-top: auto;
+  padding-top: 1mm;
 }
 
-.rx-doc-footer {
-  margin-top: 64px;
+.rpv-sign-row {
   display: flex;
-  justify-content: space-between;
   align-items: flex-end;
+  gap: 8mm;
+  margin-bottom: 3mm;
 }
 
-.rx-doc-signature {
-  width: 280px;
+.rpv-stamp {
+  width: 26mm;
+  height: 26mm;
+  border: 1.5px dashed var(--rv-divider);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rv-muted);
+  font-size: 7pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  flex-shrink: 0;
 }
 
-.rx-doc-signature-line {
-  border-top: 1px solid #111;
-  margin-bottom: 6px;
+.rpv-sign-block {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
-.rx-doc-print-count {
-  font-size: 11px;
-  color: #888;
+.rpv-sign-line {
+  border-top: 1px solid var(--rv-blue);
+  padding-top: 2mm;
 }
 
+.rpv-sign-name {
+  font-family: var(--rv-serif);
+  font-size: 10pt;
+  font-weight: 600;
+  color: var(--rv-blue);
+}
+
+.rpv-sign-sub {
+  font-size: 7pt;
+  color: var(--rv-gray);
+  margin-top: 1px;
+}
+
+.rpv-legal {
+  font-size: 6.5pt;
+  color: var(--rv-muted);
+  line-height: 1.5;
+  border-top: 1px solid var(--rv-divider);
+  padding-top: 2mm;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PRINT overrides
+   ═══════════════════════════════════════════════════════ */
 @media print {
+  /* Hide everything except the screen wrapper */
   body * { visibility: hidden; }
-  .rx-print-backdrop,
-  .rx-print-backdrop * { visibility: visible; }
-  .rx-print-backdrop {
+  .rpv-screen,
+  .rpv-screen * { visibility: visible; }
+
+  .rpv-screen {
     position: absolute;
     inset: 0;
     background: #fff !important;
-    padding: 0;
   }
-  .rx-print-sheet {
+
+  /* Hide toolbar */
+  .no-print { display: none !important; }
+
+  /* Scroll area becomes normal flow */
+  .rpv-scroll {
+    overflow: visible;
+    padding: 0;
+    display: block;
+  }
+
+  /* Paper fills the page */
+  .rpv-paper {
     box-shadow: none;
     border-radius: 0;
-    padding: 24px 32px;
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 12mm 14mm 10mm;
+    margin: 0;
   }
-  .no-print { display: none !important; }
 }

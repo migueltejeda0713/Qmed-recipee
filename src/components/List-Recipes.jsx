@@ -4,10 +4,35 @@ import { api } from "../utils/api";
 import RecipePrintView from "./RecipePrintView";
 import "../styles/listpacients.css";
 
+const IconEdit = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+const IconEye = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+const IconPrint = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 6 2 18 2 18 9"/>
+    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+    <rect x="6" y="14" width="12" height="8"/>
+  </svg>
+);
+const IconBan = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+  </svg>
+);
+
 const STATUS_LABEL = {
   DRAFT: "Borrador",
   ISSUED: "Emitida",
-  PRINTED: "Impresa",
   CANCELLED: "Cancelada",
   EXPIRED: "Expirada",
 };
@@ -178,23 +203,23 @@ export default function ListRecipes() {
                 <td>{r.line_count}</td>
                 <td>{formatDate(r.issued_at)}</td>
                 <td>{formatDate(r.created_at)}</td>
-                <td className="actions-cell" style={{ display: "flex", gap: 6 }}>
+                <td className="actions-cell">
                   {r.status === "DRAFT" ? (
-                    <button className="btn btn-edit" onClick={() => handleEdit(r)}>
-                      Editar
+                    <button className="icon-action-btn" title="Editar" onClick={() => handleEdit(r)}>
+                      <IconEdit />
                     </button>
                   ) : (
-                    <button className="btn btn-view" onClick={() => handleView(r)}>
-                      Ver
+                    <button className="icon-action-btn" title="Ver" onClick={() => handleView(r)}>
+                      <IconEye />
                     </button>
                   )}
                   {(r.status === "ISSUED" || r.status === "PRINTED") && (
                     <>
-                      <button className="btn btn-view" onClick={() => handlePrint(r)}>
-                        Imprimir
+                      <button className="icon-action-btn" title="Imprimir" onClick={() => handlePrint(r)}>
+                        <IconPrint />
                       </button>
-                      <button className="btn btn-delete" onClick={() => handleCancel(r)}>
-                        Anular
+                      <button className="icon-action-btn icon-action-danger" title="Anular" onClick={() => handleCancel(r)}>
+                        <IconBan />
                       </button>
                     </>
                   )}

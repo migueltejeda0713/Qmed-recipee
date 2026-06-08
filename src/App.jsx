@@ -20,6 +20,7 @@ import ListLaboratories from "./components/List-Laboratories";
 import ListMedicines from "./components/List-medications";
 import ListRecipes from "./components/List-Recipes";
 import Prescripciones from "./components/Prescripciones";
+import CommandPalette from "./components/CommandPalette";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -72,6 +73,7 @@ function ProtectedShell({ paciente, setPaciente }) {
 
   return (
     <div className="layout">
+      <CommandPalette />
       <aside className="sidebar-wrapper">
         <SidebarMenu />
       </aside>

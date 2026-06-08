@@ -38,7 +38,11 @@ func ListRecipes(w http.ResponseWriter, r *http.Request) {
 			r.recipe_number,
 			BIN_TO_UUID(r.id_patient, TRUE),
 			COALESCE(r.patient_name_snapshot, p.name) AS patient_name,
-			s.status_code,
+			CASE
+				WHEN s.status_code = 'ISSUED' AND r.expires_at IS NOT NULL AND r.expires_at < NOW()
+				THEN 'EXPIRED'
+				ELSE s.status_code
+			END AS status_code,
 			r.issued_at,
 			r.created_at,
 			(SELECT COUNT(*) FROM prescription pr WHERE pr.id_recipe = r.id_recipe) AS line_count

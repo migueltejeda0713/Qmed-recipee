@@ -38,7 +38,7 @@ func PrintRecipe(w http.ResponseWriter, r *http.Request) {
 		writeRecipeError(w, errNotOwner)
 		return
 	}
-	if rec.StatusCode != "ISSUED" && rec.StatusCode != "PRINTED" {
+	if rec.StatusCode != "ISSUED" {
 		clientError(w, http.StatusConflict, "recipe_not_issued", "Solo se pueden imprimir recetas emitidas")
 		return
 	}
@@ -63,6 +63,8 @@ func PrintRecipe(w http.ResponseWriter, r *http.Request) {
 		serverError(w, "register_print", err)
 		return
 	}
+
+	logRecipeEvent(database, recipeID, doctorID, EventPrinted)
 
 	doc := models.RecipeDocument{
 		RecipeNumber:    *rec.RecipeNumber,

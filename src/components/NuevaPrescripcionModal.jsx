@@ -10,6 +10,7 @@ export default function NuevaPrescripcionModal({ onClose, onGuardada }) {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const [dosage, setDosage] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [usageInstructions, setUsageInstructions] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -64,6 +65,7 @@ export default function NuevaPrescripcionModal({ onClose, onGuardada }) {
       const { data } = await api.post("/api/prescription-templates", {
         id_medicine: medicine.id_medicine,
         dosage: dosage.trim(),
+        quantity: quantity.trim(),
         usage_instructions: usageInstructions.trim(),
       });
       onGuardada(data);
@@ -143,6 +145,19 @@ export default function NuevaPrescripcionModal({ onClose, onGuardada }) {
           placeholder="Ej. 1 cáp. c/8h x7 días"
           value={dosage}
           onChange={(e) => { setDosage(e.target.value); setError(""); }}
+          disabled={saving}
+        />
+      </div>
+
+      {/* Cantidad */}
+      <div className="container-datos-pacientes">
+        <label className="paciente-label">Cantidad</label>
+        <input
+          type="text"
+          className="paciente-input"
+          placeholder="Ej. 21 cápsulas (opcional)"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
           disabled={saving}
         />
       </div>

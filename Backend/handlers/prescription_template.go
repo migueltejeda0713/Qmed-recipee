@@ -38,6 +38,7 @@ func ListPrescriptionTemplates(w http.ResponseWriter, r *http.Request) {
 			BIN_TO_UUID(pt.id_medicine, TRUE),
 			m.medicine_name,
 			pt.dosage,
+			COALESCE(pt.quantity, ''),
 			COALESCE(pt.usage_instructions, ''),
 			pt.created_at
 		 FROM prescription_template pt
@@ -57,6 +58,7 @@ func ListPrescriptionTemplates(w http.ResponseWriter, r *http.Request) {
 		IDMedicine        string `json:"id_medicine"`
 		MedicineName      string `json:"medicine_name"`
 		Dosage            string `json:"dosage"`
+		Quantity          string `json:"quantity,omitempty"`
 		UsageInstructions string `json:"usage_instructions,omitempty"`
 		CreatedAt         string `json:"created_at"`
 	}
@@ -64,7 +66,7 @@ func ListPrescriptionTemplates(w http.ResponseWriter, r *http.Request) {
 	out := []item{}
 	for rows.Next() {
 		var it item
-		if err := rows.Scan(&it.ID, &it.IDMedicine, &it.MedicineName, &it.Dosage, &it.UsageInstructions, &it.CreatedAt); err != nil {
+		if err := rows.Scan(&it.ID, &it.IDMedicine, &it.MedicineName, &it.Dosage, &it.Quantity, &it.UsageInstructions, &it.CreatedAt); err != nil {
 			log.Printf("ListPrescriptionTemplates scan: %v", err)
 			continue
 		}
@@ -92,6 +94,7 @@ func CreatePrescriptionTemplate(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		IDMedicine        string `json:"id_medicine"`
 		Dosage            string `json:"dosage"`
+		Quantity          string `json:"quantity"`
 		UsageInstructions string `json:"usage_instructions"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -109,15 +112,19 @@ func CreatePrescriptionTemplate(w http.ResponseWriter, r *http.Request) {
 
 	database := db.InitDB()
 
+	var qty interface{} = nil
+	if body.Quantity != "" {
+		qty = body.Quantity
+	}
 	var usage interface{} = nil
 	if body.UsageInstructions != "" {
 		usage = body.UsageInstructions
 	}
 
 	_, err := database.Exec(
-		`INSERT INTO prescription_template (id_doctor, id_medicine, dosage, usage_instructions)
-		 VALUES (UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE), ?, ?)`,
-		doctorID, body.IDMedicine, body.Dosage, usage,
+		`INSERT INTO prescription_template (id_doctor, id_medicine, dosage, quantity, usage_instructions)
+		 VALUES (UUID_TO_BIN(?, TRUE), UUID_TO_BIN(?, TRUE), ?, ?, ?)`,
+		doctorID, body.IDMedicine, body.Dosage, qty, usage,
 	)
 	if err != nil {
 		serverError(w, "insert_prescription_template", err)
@@ -129,6 +136,7 @@ func CreatePrescriptionTemplate(w http.ResponseWriter, r *http.Request) {
 		IDMedicine        string `json:"id_medicine"`
 		MedicineName      string `json:"medicine_name"`
 		Dosage            string `json:"dosage"`
+		Quantity          string `json:"quantity,omitempty"`
 		UsageInstructions string `json:"usage_instructions,omitempty"`
 		CreatedAt         string `json:"created_at"`
 	}
@@ -139,6 +147,7 @@ func CreatePrescriptionTemplate(w http.ResponseWriter, r *http.Request) {
 			BIN_TO_UUID(pt.id_medicine, TRUE),
 			m.medicine_name,
 			pt.dosage,
+			COALESCE(pt.quantity, ''),
 			COALESCE(pt.usage_instructions, ''),
 			pt.created_at
 		 FROM prescription_template pt
@@ -148,7 +157,7 @@ func CreatePrescriptionTemplate(w http.ResponseWriter, r *http.Request) {
 		 ORDER BY pt.created_at DESC
 		 LIMIT 1`,
 		doctorID, body.IDMedicine,
-	).Scan(&out.ID, &out.IDMedicine, &out.MedicineName, &out.Dosage, &out.UsageInstructions, &out.CreatedAt)
+	).Scan(&out.ID, &out.IDMedicine, &out.MedicineName, &out.Dosage, &out.Quantity, &out.UsageInstructions, &out.CreatedAt)
 	if err != nil {
 		serverError(w, "fetch_new_template", err)
 		return

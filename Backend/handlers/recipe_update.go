@@ -47,5 +47,6 @@ func UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	logRecipeEvent(database, recipeID, doctorID, EventDraftUpdated)
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Recipe updated"})
 }

@@ -80,7 +80,8 @@ func IssueRecipe(w http.ResponseWriter, r *http.Request) {
 		`UPDATE recipe
 		 SET row_status_id = ?,
 		     recipe_number = ?,
-		     issued_at = CURRENT_TIMESTAMP,
+		     issued_at     = CURRENT_TIMESTAMP,
+		     expires_at    = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 30 DAY),
 		     doctor_name_snapshot      = ?,
 		     doctor_license_snapshot   = ?,
 		     patient_name_snapshot     = ?,
@@ -94,6 +95,8 @@ func IssueRecipe(w http.ResponseWriter, r *http.Request) {
 		serverError(w, "update_issue", err)
 		return
 	}
+
+	logRecipeEvent(tx, recipeID, doctorID, EventIssued)
 
 	if err := tx.Commit(); err != nil {
 		serverError(w, "commit_tx", err)

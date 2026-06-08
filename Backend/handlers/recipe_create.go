@@ -92,6 +92,8 @@ func CreateRecipe(w http.ResponseWriter, r *http.Request) {
 		insertedPrescriptions = append(insertedPrescriptions, pid)
 	}
 
+	logRecipeEvent(tx, recipeID, doctorID, EventCreated)
+
 	if err := tx.Commit(); err != nil {
 		serverError(w, "commit_tx", err)
 		return

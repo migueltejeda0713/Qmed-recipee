@@ -85,6 +85,17 @@ const IconPill = () => (
     <path d="m8.5 8.5 7 7" />
   </svg>
 );
+const IconSpinner = () => (
+  <svg className="rx-spin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+);
+const IconPillSm = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+    <path d="m8.5 8.5 7 7" />
+  </svg>
+);
 
 const defaultPresc = () => ({
   localId: Date.now() + Math.random(),
@@ -117,6 +128,137 @@ function fromServerPrescription(s) {
     saved: true,
     dirty: false,
   };
+}
+
+function PrescriptionSearch({ onAdd }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState([]);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const wrapRef = useRef(null);
+  const abortRef = useRef(null);
+  const debRef = useRef(null);
+
+  const doFetch = useCallback((term) => {
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    setLoading(true);
+    clearTimeout(debRef.current);
+    debRef.current = setTimeout(async () => {
+      try {
+        const params = term.trim() ? { q: term.trim() } : {};
+        const { data } = await api.get("/api/prescription-templates", { params, signal: ctrl.signal });
+        setResults(data?.data || []);
+        setActiveIdx(0);
+      } catch (err) {
+        if (err?.code !== "ERR_CANCELED" && err?.name !== "CanceledError") setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, term.trim() ? 250 : 0);
+  }, []);
+
+  useEffect(() => {
+    const h = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  useEffect(() => () => { clearTimeout(debRef.current); abortRef.current?.abort(); }, []);
+
+  const handleFocus = () => {
+    setOpen(true);
+    if (results.length === 0) doFetch(q);
+  };
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setQ(val);
+    setOpen(true);
+    doFetch(val);
+  };
+
+  const pick = (tpl) => {
+    onAdd(tpl);
+    setQ("");
+    setOpen(false);
+  };
+
+  const onKeyDown = (e) => {
+    if (!open || results.length === 0) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActiveIdx((i) => Math.min(i + 1, results.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActiveIdx((i) => Math.max(i - 1, 0)); }
+    else if (e.key === "Enter") { e.preventDefault(); if (results[activeIdx]) pick(results[activeIdx]); }
+    else if (e.key === "Escape") setOpen(false);
+  };
+
+  return (
+    <div className="rx-tpl-search-wrap" ref={wrapRef}>
+      <div className="search-wrap">
+        <span className="search-icon">{loading ? <IconSpinner /> : <IconSearch />}</span>
+        <input
+          type="text"
+          className="field-input search-input"
+          placeholder="Buscar prescripción guardada para agregar…"
+          value={q}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onKeyDown={onKeyDown}
+          autoComplete="off"
+        />
+        {q && (
+          <button
+            type="button"
+            className="search-clear"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => { setQ(""); setResults([]); doFetch(""); }}
+          >
+            <IconX />
+          </button>
+        )}
+      </div>
+      {open && (
+        <ul className="rx-dropdown rx-tpl-dropdown">
+          {loading ? (
+            <li className="rx-tpl-state"><IconSpinner /> Buscando…</li>
+          ) : results.length === 0 ? (
+            <li className="rx-tpl-state">
+              {q.trim() ? `Sin resultados para "${q}"` : "No tienes prescripciones guardadas aún"}
+            </li>
+          ) : (
+            <>
+              <li className="dropdown-header">
+                {q.trim() ? `Resultados (${results.length})` : `Tus prescripciones (${results.length})`}
+              </li>
+              {results.map((tpl, i) => (
+                <li
+                  key={tpl.id}
+                  className={`rx-dropdown-item rx-tpl-item${i === activeIdx ? " rx-tpl-active" : ""}`}
+                  onMouseEnter={() => setActiveIdx(i)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => pick(tpl)}
+                >
+                  <div className="dropdown-avatar rx-tpl-avatar"><IconPillSm /></div>
+                  <div className="rx-tpl-body">
+                    <div className="dropdown-item-name">{tpl.medicine_name}</div>
+                    <div className="dropdown-item-meta">
+                      {tpl.dosage}
+                      {tpl.quantity && <span style={{ marginLeft: 6, opacity: 0.75 }}>· {tpl.quantity}</span>}
+                    </div>
+                    {tpl.usage_instructions && (
+                      <div className="rx-tpl-usage">{tpl.usage_instructions}</div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </>
+          )}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export default function RecetaForm() {
@@ -410,6 +552,33 @@ export default function RecetaForm() {
     setPrescriptions((prev) => [...prev, defaultPresc()]);
   };
 
+  const addFromTemplate = useCallback((tpl) => {
+    setPrescriptions((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && !last.saved && !last.nombre.trim() && !last.dosis.trim()) {
+        return prev.map((p, i) =>
+          i === prev.length - 1
+            ? { ...p, nombre: tpl.medicine_name, cantidad: tpl.quantity || "", dosis: tpl.dosage, modoUso: tpl.usage_instructions || "", dirty: true }
+            : p
+        );
+      }
+      return [
+        ...prev,
+        {
+          localId: Date.now() + Math.random(),
+          serverId: null,
+          nombre: tpl.medicine_name,
+          cantidad: tpl.quantity || "",
+          dosis: tpl.dosage,
+          modoUso: tpl.usage_instructions || "",
+          saved: false,
+          dirty: true,
+        },
+      ];
+    });
+    showToast(`"${tpl.medicine_name}" agregado`);
+  }, [showToast]);
+
   const persistNotesIfNeeded = async () => {
     if (!recipeId) return;
     try {
@@ -673,6 +842,8 @@ export default function RecetaForm() {
                 </span>
               )}
             </div>
+
+            {isDraft && <PrescriptionSearch onAdd={addFromTemplate} />}
 
             <div className="rx-list">
               {prescriptions.length === 0 && (

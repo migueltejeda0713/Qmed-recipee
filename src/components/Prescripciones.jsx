@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { api } from "../utils/api";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import NuevaPrescripcionModal from "./NuevaPrescripcionModal";
@@ -15,12 +16,22 @@ function formatDate(value) {
 }
 
 export default function Prescripciones() {
+  const location = useLocation();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState(null);
   const debounceRef = useRef(null);
+
+  // Abre el modal automáticamente si se navegó con { state: { openNew: true } }
+  // (por ejemplo desde el Ctrl+K)
+  useEffect(() => {
+    if (location.state?.openNew) {
+      setShowModal(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showToast = useCallback((msg) => {
     setToast(msg);
@@ -103,6 +114,7 @@ export default function Prescripciones() {
           <tr>
             <th>Medicamento</th>
             <th>Dosis</th>
+            <th>Cantidad</th>
             <th>Instrucciones de uso</th>
             <th>Guardada</th>
             <th>Acciones</th>
@@ -111,11 +123,11 @@ export default function Prescripciones() {
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan="5" style={{ textAlign: "center", fontStyle: "italic" }}>Cargando…</td>
+              <td colSpan="6" style={{ textAlign: "center", fontStyle: "italic" }}>Cargando…</td>
             </tr>
           ) : templates.length === 0 ? (
             <tr>
-              <td colSpan="5" style={{ textAlign: "center", fontStyle: "italic" }}>
+              <td colSpan="6" style={{ textAlign: "center", fontStyle: "italic" }}>
                 {search ? `Sin resultados para "${search}"` : "Aún no tienes prescripciones guardadas"}
               </td>
             </tr>
@@ -124,6 +136,7 @@ export default function Prescripciones() {
               <tr key={t.id}>
                 <td><strong>{t.medicine_name}</strong></td>
                 <td>{t.dosage}</td>
+                <td style={{ color: "var(--text-muted)" }}>{t.quantity || "—"}</td>
                 <td style={{ color: "var(--text-muted)" }}>{t.usage_instructions || "—"}</td>
                 <td>{formatDate(t.created_at)}</td>
                 <td className="actions-cell">

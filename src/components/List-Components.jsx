@@ -76,7 +76,6 @@ const ListComponents = forwardRef((props, ref) => {
       <table className="components-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nombre</th>
             <th>Acciones</th>
           </tr>
@@ -84,7 +83,7 @@ const ListComponents = forwardRef((props, ref) => {
         <tbody>
           {toRender.length === 0 ? (
             <tr>
-              <td colSpan="3" className="no-components-data">
+              <td colSpan="2" className="no-components-data">
                 {searchTerm
                   ? `No se encontraron para "${searchTerm}"`
                   : "No hay componentes registrados"}
@@ -93,7 +92,6 @@ const ListComponents = forwardRef((props, ref) => {
           ) : (
             toRender.map((c) => (
               <tr key={c.id_component}>
-                <td>{c.id_component}</td>
                 <td>{c.name}</td>
                 <td className="components-actions-cell actions-cell">
                   <button

@@ -744,6 +744,66 @@
   opacity: 0.8;
 }
 
+/* ── Prescription template search bar ─────────────────────────── */
+.receta-page .rx-tpl-search-wrap {
+  position: relative;
+}
+
+.receta-page .rx-tpl-dropdown {
+  max-height: 360px;
+}
+
+.receta-page .rx-tpl-item {
+  align-items: flex-start;
+}
+
+.receta-page .rx-tpl-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.receta-page .rx-tpl-usage {
+  font-size: 11.5px;
+  color: var(--rx-text-muted);
+  font-style: italic;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.receta-page .rx-tpl-avatar {
+  background: var(--rx-blue-light);
+  color: var(--rx-blue);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.receta-page .rx-tpl-active {
+  background: var(--rx-blue-light);
+}
+
+.receta-page .rx-tpl-state {
+  padding: 16px 14px;
+  font-size: 12.5px;
+  color: var(--rx-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  list-style: none;
+}
+
+.rx-spin {
+  animation: rxSpin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes rxSpin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 900px) {
   .receta-page .card-body {
     grid-template-columns: 1fr;

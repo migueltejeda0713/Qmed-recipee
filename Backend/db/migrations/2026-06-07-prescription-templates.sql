@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS prescription_template (
 
     CONSTRAINT fk_presc_tmpl_status
         FOREIGN KEY (row_status_id) REFERENCES row_status (id_status)
-        ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB;
+        ON UPDATE CASCADE ON DELETE RESTRICT,
 
-CREATE INDEX idx_presc_tmpl_doctor ON prescription_template (id_doctor);
+    INDEX idx_presc_tmpl_doctor (id_doctor)
+) ENGINE=InnoDB;

@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -83,6 +84,11 @@ func loadRecipe(database *sql.DB, recipeID string) (*models.Recipe, error) {
 		return nil, err
 	}
 	rec.StatusCode = statusCodeOf(statusID)
+	if rec.StatusCode == "ISSUED" && rec.ExpiresAt != nil {
+		if t, err := time.Parse("2006-01-02 15:04:05", *rec.ExpiresAt); err == nil && t.Before(time.Now()) {
+			rec.StatusCode = "EXPIRED"
+		}
+	}
 	rec.RecipeNumber = nullToPtr(recipeNumber)
 	rec.GeneralNotes = nullToPtr(notes)
 	rec.DoctorNameSnapshot = nullToPtr(docName)

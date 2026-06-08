@@ -224,6 +224,34 @@
   padding: 0.5rem;
 }
 
+/* Icon-only action buttons */
+.icon-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  border: 1.5px solid var(--divider);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-soft);
+  transition: background 150ms, border-color 150ms, color 150ms;
+  flex-shrink: 0;
+}
+
+.icon-action-btn:hover {
+  background: var(--blue-light);
+  border-color: var(--blue-mid);
+  color: var(--blue);
+}
+
+.icon-action-btn.icon-action-danger:hover {
+  background: oklch(97% 0.04 15);
+  border-color: oklch(78% 0.08 15);
+  color: oklch(48% 0.14 15);
+}
+
 /* Recipe status pills */
 .status-pill {
   display: inline-block;
