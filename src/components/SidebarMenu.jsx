@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import "../styles/sidebar.css";
 import { useAuth } from "../context/AuthContext";
+import { useModal } from "../context/ModalContext";
 
 export default function SidebarMenu() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function SidebarMenu() {
   const currentLocation = useMemo(() => location, []);
   const isActive = (paths) => paths.includes(location.pathname);
   const { logout } = useAuth();
+  const { openModal } = useModal();
 
   const iconStyle = { flexShrink: 0 };
 
@@ -52,8 +54,7 @@ export default function SidebarMenu() {
               <UserPlus size={16} style={iconStyle} /> Agregar paciente
             </span>
           ),
-          command: () =>
-            navigate("/addpacient", { state: { background: currentLocation } }),
+          command: () => openModal("add-patient"),
         },
       ],
     },
@@ -111,8 +112,7 @@ export default function SidebarMenu() {
               <PlusCircle size={16} style={iconStyle} /> Agregar laboratorio
             </span>
           ),
-          command: () =>
-            navigate("/laboratorios/add", { state: { background: currentLocation } }),
+          command: () => openModal("add-laboratory"),
         },
       ],
     },
@@ -137,8 +137,7 @@ export default function SidebarMenu() {
               <PlusSquare size={16} style={iconStyle} /> Agregar componente
             </span>
           ),
-          command: () =>
-            navigate("/componentes/add", { state: { background: currentLocation } }),
+          command: () => openModal("add-component"),
         },
       ],
     },
@@ -163,8 +162,7 @@ export default function SidebarMenu() {
               <CirclePlus size={16} style={iconStyle} /> Agregar medicamento
             </span>
           ),
-          command: () =>
-            navigate("/medicamentos/add", { state: { background: currentLocation } }),
+          command: () => openModal("add-medicine"),
         },
       ],
     },

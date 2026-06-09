@@ -1,5 +1,6 @@
 import React, { forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useModal } from "../context/ModalContext";
 import "../styles/listlaboratories.css";
 import "../styles/listpacients.css";
 import Loading from "./Loading";
@@ -20,6 +21,7 @@ const IconCheck = () => (
 const ListLaboratories = forwardRef((props, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { openModal, closeModal } = useModal();
 
   const { toRender, setItems, loading, loadDuration, hasMore, page, searchTerm, setSearchTerm, fetchItems, refresh } =
     usePaginatedList({
@@ -80,7 +82,9 @@ const ListLaboratories = forwardRef((props, ref) => {
       <header className="header-list-laboratorios">
         <button
           className="btn-primary"
-          onClick={() => navigate("/laboratorios/add", { state: { background: location } })}
+          onClick={() => openModal("add-laboratory", {
+            onLaboratorioGuardado: () => { closeModal(); fetchItems(1); },
+          })}
         >
           Agregar Laboratorio
         </button>

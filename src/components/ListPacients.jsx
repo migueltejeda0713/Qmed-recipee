@@ -11,6 +11,7 @@ import PacienteDetalleModal from "../components/Pacientdetails";
 import { getAllPacientes, savePacientes } from "../utils/indexedDB";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { usePaginatedList } from "../hooks/usePaginatedList";
+import { useModal } from "../context/ModalContext";
 
 const IconCheck = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -21,6 +22,7 @@ const IconCheck = () => (
 const ListPacients = forwardRef((props, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { openModal, closeModal } = useModal();
 
   const [showDetalle, setShowDetalle] = useState(false);
   const [detallePaciente, setDetallePaciente] = useState(null);
@@ -87,7 +89,9 @@ const ListPacients = forwardRef((props, ref) => {
       <header className="header-list-pacientes">
         <button
           className="btn-primary"
-          onClick={() => navigate("/addpacient", { state: { background: location } })}
+          onClick={() => openModal("add-patient", {
+            onPacienteGuardado: () => { closeModal(); fetchItems(1); },
+          })}
         >
           Agregar Paciente
         </button>
@@ -152,9 +156,10 @@ const ListPacients = forwardRef((props, ref) => {
                   {paciente.is_active !== false && (
                     <button
                       className="btn btn-edit"
-                      onClick={() =>
-                        navigate("/editpacient", { state: { paciente, background: location } })
-                      }
+                      onClick={() => openModal("add-patient", {
+                        paciente,
+                        onPacienteGuardado: () => { closeModal(); fetchItems(1); },
+                      })}
                     >
                       <img src={EditIcon} alt="Editar" width={20} height={20} />
                     </button>

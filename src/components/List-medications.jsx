@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useModal } from "../context/ModalContext";
 import "../styles/listpacients.css";
 import Loading from "./Loading";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
@@ -19,6 +20,7 @@ const IconCheck = () => (
 const ListMedicines = forwardRef((_props, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { openModal, closeModal } = useModal();
 
   const { toRender, setItems, loading, loadDuration, hasMore, page, searchTerm, setSearchTerm, fetchItems } =
     usePaginatedList({
@@ -77,7 +79,9 @@ const ListMedicines = forwardRef((_props, ref) => {
       <header className="header-list-pacientes">
         <button
           className="btn btn-addPatient"
-          onClick={() => navigate("/medicamentos/add", { state: { background: location } })}
+          onClick={() => openModal("add-medicine", {
+            onMedicamentoGuardado: () => { closeModal(); fetchItems(1); },
+          })}
         >
           Agregar medicamento
         </button>
@@ -137,9 +141,10 @@ const ListMedicines = forwardRef((_props, ref) => {
                   {med.is_active !== false && (
                     <button
                       className="btn btn-edit"
-                      onClick={() =>
-                        navigate("/medicamentos/edit", { state: { medicamento: med, background: location } })
-                      }
+                      onClick={() => openModal("add-medicine", {
+                        medicamento: med,
+                        onMedicamentoGuardado: () => { closeModal(); fetchItems(1); },
+                      })}
                     >
                       <img src={EditIcon} alt="Editar" width={20} height={20} />
                     </button>

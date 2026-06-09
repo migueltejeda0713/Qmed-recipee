@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Search, FilePlus, ListOrdered, Users, UserPlus,
   FileText, Pill, CirclePlus, FlaskConical, PlusCircle,
   Layers, PlusSquare, Stethoscope, ClipboardPlus,
 } from "lucide-react";
+import { useModal } from "../context/ModalContext";
 import "../styles/CommandPalette.css";
 
 const ITEMS = [
@@ -40,9 +41,7 @@ const ITEMS = [
     group: "Recetas",
     label: "Nueva Prescripción",
     desc: "Agregar una prescripción al catálogo",
-    path: "/prescripciones",
-    modal: false,
-    openNew: true,
+    modalKey: "add-prescription",
     icon: ClipboardPlus,
     keywords: ["nueva", "prescripcion", "agregar", "crear", "plantilla", "catalogo"],
   },
@@ -51,7 +50,6 @@ const ITEMS = [
     label: "Lista de Pacientes",
     desc: "Ver y buscar pacientes registrados",
     path: "/list-pacients",
-    modal: false,
     icon: Users,
     keywords: ["pacientes", "lista", "buscar"],
   },
@@ -59,8 +57,7 @@ const ITEMS = [
     group: "Pacientes",
     label: "Agregar Paciente",
     desc: "Registrar un nuevo paciente",
-    path: "/addpacient",
-    modal: true,
+    modalKey: "add-patient",
     icon: UserPlus,
     keywords: ["paciente", "nuevo", "agregar", "registrar", "crear"],
   },
@@ -69,7 +66,6 @@ const ITEMS = [
     label: "Lista de Medicamentos",
     desc: "Catálogo de medicamentos disponibles",
     path: "/list-medicines",
-    modal: false,
     icon: Pill,
     keywords: ["medicamentos", "lista", "catálogo", "fármacos"],
   },
@@ -77,8 +73,7 @@ const ITEMS = [
     group: "Medicamentos",
     label: "Agregar Medicamento",
     desc: "Registrar un nuevo medicamento",
-    path: "/medicamentos/add",
-    modal: true,
+    modalKey: "add-medicine",
     icon: CirclePlus,
     keywords: ["medicamento", "nuevo", "agregar", "crear", "fármaco"],
   },
@@ -87,7 +82,6 @@ const ITEMS = [
     label: "Lista de Laboratorios",
     desc: "Ver laboratorios registrados",
     path: "/list-laboratories",
-    modal: false,
     icon: FlaskConical,
     keywords: ["laboratorios", "lista"],
   },
@@ -95,8 +89,7 @@ const ITEMS = [
     group: "Laboratorios",
     label: "Agregar Laboratorio",
     desc: "Registrar un nuevo laboratorio",
-    path: "/laboratorios/add",
-    modal: true,
+    modalKey: "add-laboratory",
     icon: PlusCircle,
     keywords: ["laboratorio", "nuevo", "agregar", "crear"],
   },
@@ -105,7 +98,6 @@ const ITEMS = [
     label: "Lista de Componentes",
     desc: "Ver componentes/principios activos",
     path: "/list-componentes",
-    modal: false,
     icon: Layers,
     keywords: ["componentes", "lista", "principios", "activos"],
   },
@@ -113,8 +105,7 @@ const ITEMS = [
     group: "Componentes",
     label: "Agregar Componente",
     desc: "Registrar un nuevo componente",
-    path: "/componentes/add",
-    modal: true,
+    modalKey: "add-component",
     icon: PlusSquare,
     keywords: ["componente", "nuevo", "agregar", "crear", "principio"],
   },
@@ -142,8 +133,9 @@ export default function CommandPalette() {
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef(null);
   const listRef = useRef(null);
+  const isKeyboardNav = useRef(false);
   const navigate = useNavigate();
-  const location = useLocation();
+  const { openModal } = useModal();
 
   const filtered = filterItems(query);
 
@@ -172,9 +164,10 @@ export default function CommandPalette() {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  // Mantener el item activo visible
+  // Mantener el item activo visible solo cuando la navegación es por teclado
   useEffect(() => {
-    const el = listRef.current?.children[activeIdx];
+    if (!isKeyboardNav.current) return;
+    const el = listRef.current?.querySelector(".cp-item.active");
     el?.scrollIntoView({ block: "nearest" });
   }, [activeIdx]);
 
@@ -182,22 +175,22 @@ export default function CommandPalette() {
 
   const go = useCallback((item) => {
     close();
-    if (item.modal) {
-      navigate(item.path, { state: { background: location } });
-    } else if (item.openNew) {
-      navigate(item.path, { state: { openNew: true } });
+    if (item.modalKey) {
+      openModal(item.modalKey);
     } else {
       navigate(item.path);
     }
-  }, [close, navigate, location]);
+  }, [close, navigate, openModal]);
 
   const onKeyDown = (e) => {
     if (e.key === "Escape") { close(); return; }
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      isKeyboardNav.current = true;
       setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      isKeyboardNav.current = true;
       setActiveIdx((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && filtered[activeIdx]) {
       go(filtered[activeIdx]);
@@ -246,7 +239,7 @@ export default function CommandPalette() {
                     <div
                       key={item.path + item.label}
                       className={`cp-item${isActive ? " active" : ""}`}
-                      onMouseEnter={() => setActiveIdx(item._idx)}
+                      onMouseEnter={() => { isKeyboardNav.current = false; setActiveIdx(item._idx); }}
                       onMouseDown={() => go(item)}
                     >
                       <div className="cp-item-icon">
@@ -256,8 +249,8 @@ export default function CommandPalette() {
                         <div className="cp-item-label">{item.label}</div>
                         <div className="cp-item-desc">{item.desc}</div>
                       </div>
-                      <span className={`cp-item-badge ${item.modal || item.openNew ? "cp-badge-modal" : "cp-badge-view"}`}>
-                        {item.modal || item.openNew ? "Modal" : "Vista"}
+                      <span className={`cp-item-badge ${item.modalKey ? "cp-badge-modal" : "cp-badge-view"}`}>
+                        {item.modalKey ? "Modal" : "Vista"}
                       </span>
                     </div>
                   );
