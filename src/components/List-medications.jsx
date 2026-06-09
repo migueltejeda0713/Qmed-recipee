@@ -10,6 +10,12 @@ import { API_URL, apiFetch } from "../utils/api";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { usePaginatedList } from "../hooks/usePaginatedList";
 
+const IconCheck = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
 const ListMedicines = forwardRef((_props, ref) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,7 +29,7 @@ const ListMedicines = forwardRef((_props, ref) => {
       idField: "id_medicine",
     });
 
-  const handleDelete = (id) =>
+  const handleInactivar = (id) =>
     confirmDialog({
       message: "¿Estás seguro de que deseas inactivar este medicamento?",
       header: "Inactivar medicamento",
@@ -32,13 +38,34 @@ const ListMedicines = forwardRef((_props, ref) => {
       rejectLabel: "Cancelar",
       accept: async () => {
         try {
-          setItems((prev) => prev.filter((m) => m.id_medicine !== id));
+          setItems((prev) => prev.map((m) => m.id_medicine === id ? { ...m, is_active: false } : m));
           const res = await apiFetch(`${API_URL}/api/deletemedicamento/${id}`, {
             method: "DELETE",
           });
           if (!res.ok) throw new Error();
         } catch {
-          alert("No se pudo eliminar el medicamento.");
+          alert("No se pudo inactivar el medicamento.");
+          fetchItems(1);
+        }
+      },
+    });
+
+  const handleActivar = (id) =>
+    confirmDialog({
+      message: "¿Deseas activar este medicamento nuevamente?",
+      header: "Activar medicamento",
+      icon: "pi pi-check-circle",
+      acceptLabel: "Activar",
+      rejectLabel: "Cancelar",
+      accept: async () => {
+        try {
+          setItems((prev) => prev.map((m) => m.id_medicine === id ? { ...m, is_active: true } : m));
+          const res = await apiFetch(`${API_URL}/api/activatemedicamento/${id}`, {
+            method: "PUT",
+          });
+          if (!res.ok) throw new Error();
+        } catch {
+          alert("No se pudo activar el medicamento.");
           fetchItems(1);
         }
       },
@@ -74,13 +101,14 @@ const ListMedicines = forwardRef((_props, ref) => {
             <th>Nombre</th>
             <th>Componente</th>
             <th>Laboratorio</th>
+            <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {toRender.length === 0 ? (
             <tr>
-              <td colSpan="4" style={{ textAlign: "center", fontStyle: "italic" }}>
+              <td colSpan="5" style={{ textAlign: "center", fontStyle: "italic" }}>
                 {searchTerm.trim()
                   ? `No se encontraron medicamentos para "${searchTerm}"`
                   : "No hay medicamentos registrados"}
@@ -88,10 +116,15 @@ const ListMedicines = forwardRef((_props, ref) => {
             </tr>
           ) : (
             toRender.map((med) => (
-              <tr key={med.id_medicine}>
+              <tr key={med.id_medicine} className={med.is_active === false ? "row-inactive" : ""}>
                 <td>{med.medicine_name}</td>
                 <td>{med.component_name}</td>
                 <td>{med.laboratory_name}</td>
+                <td>
+                  <span className={`status-pill ${med.is_active === false ? "status-inactive" : "status-active"}`}>
+                    {med.is_active === false ? "Inactivo" : "Activo"}
+                  </span>
+                </td>
                 <td className="actions-cell">
                   <button
                     className="btn btn-view"
@@ -101,17 +134,25 @@ const ListMedicines = forwardRef((_props, ref) => {
                   >
                     <img src={ViewIcon} alt="Ver" width={20} height={20} />
                   </button>
-                  <button
-                    className="btn btn-edit"
-                    onClick={() =>
-                      navigate("/medicamentos/edit", { state: { medicamento: med, background: location } })
-                    }
-                  >
-                    <img src={EditIcon} alt="Editar" width={20} height={20} />
-                  </button>
-                  <button className="btn btn-delete" onClick={() => handleDelete(med.id_medicine)}>
-                    <img src={DeleteIcon} alt="Inactivar" width={20} height={20} />
-                  </button>
+                  {med.is_active !== false && (
+                    <button
+                      className="btn btn-edit"
+                      onClick={() =>
+                        navigate("/medicamentos/edit", { state: { medicamento: med, background: location } })
+                      }
+                    >
+                      <img src={EditIcon} alt="Editar" width={20} height={20} />
+                    </button>
+                  )}
+                  {med.is_active === false ? (
+                    <button className="btn btn-activate" title="Activar" onClick={() => handleActivar(med.id_medicine)}>
+                      <IconCheck />
+                    </button>
+                  ) : (
+                    <button className="btn btn-delete" title="Inactivar" onClick={() => handleInactivar(med.id_medicine)}>
+                      <img src={DeleteIcon} alt="Inactivar" width={20} height={20} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))

@@ -76,7 +76,8 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 			p.document_id,
 			p.phone,
 			COALESCE(ip.provider_name, 'Not specified'),
-			COALESCE(pol.policy_number, 'No policy registered')
+			COALESCE(pol.policy_number, 'No policy registered'),
+			(p.row_status_id = 2)
 		FROM patient p
 		LEFT JOIN insurance_policy pol ON p.id_policy = pol.id_policy
 		LEFT JOIN insurance_provider ip ON pol.id_provider = ip.id_provider
@@ -107,6 +108,7 @@ func GetPacientesPaginados(w http.ResponseWriter, r *http.Request) {
 			&phone,
 			&provider,
 			&policyNumber,
+			&p.IsActive,
 		); err != nil {
 			log.Printf("Error scanning row: %v", err)
 			continue

@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// ListPrescriptionTemplates returns ACTIVE templates for the authenticated doctor.
+// ListPrescriptionTemplates returns all templates for the authenticated doctor.
 // Route: GET /api/prescription-templates?q=
 func ListPrescriptionTemplates(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
@@ -24,7 +24,7 @@ func ListPrescriptionTemplates(w http.ResponseWriter, r *http.Request) {
 
 	database := db.InitDB()
 
-	where := "WHERE pt.id_doctor = UUID_TO_BIN(?, TRUE) AND pt.row_status_id = 2"
+	where := "WHERE pt.id_doctor = UUID_TO_BIN(?, TRUE)"
 	args := []interface{}{doctorID}
 
 	if q != "" {
@@ -40,7 +40,8 @@ func ListPrescriptionTemplates(w http.ResponseWriter, r *http.Request) {
 			pt.dosage,
 			COALESCE(pt.quantity, ''),
 			COALESCE(pt.usage_instructions, ''),
-			pt.created_at
+			pt.created_at,
+			(pt.row_status_id = 2)
 		 FROM prescription_template pt
 		 JOIN medicine m ON m.id_medicine = pt.id_medicine
 		 `+where+`
@@ -61,12 +62,13 @@ func ListPrescriptionTemplates(w http.ResponseWriter, r *http.Request) {
 		Quantity          string `json:"quantity,omitempty"`
 		UsageInstructions string `json:"usage_instructions,omitempty"`
 		CreatedAt         string `json:"created_at"`
+		IsActive          bool   `json:"is_active"`
 	}
 
 	out := []item{}
 	for rows.Next() {
 		var it item
-		if err := rows.Scan(&it.ID, &it.IDMedicine, &it.MedicineName, &it.Dosage, &it.Quantity, &it.UsageInstructions, &it.CreatedAt); err != nil {
+		if err := rows.Scan(&it.ID, &it.IDMedicine, &it.MedicineName, &it.Dosage, &it.Quantity, &it.UsageInstructions, &it.CreatedAt, &it.IsActive); err != nil {
 			log.Printf("ListPrescriptionTemplates scan: %v", err)
 			continue
 		}
@@ -215,4 +217,53 @@ func InactivatePrescriptionTemplate(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(map[string]string{"status": "INACTIVE"})
+}
+
+// ActivatePrescriptionTemplate sets row_status_id = 2 (ACTIVE) for a template.
+// Only the owning doctor can activate their own templates.
+// Route: PUT /api/prescription-templates/{id}/activate
+func ActivatePrescriptionTemplate(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	doctorID := doctorIDFromCtx(r)
+	templateID := mux.Vars(r)["id"]
+
+	database := db.InitDB()
+
+	var ownerID string
+	err := database.QueryRow(
+		`SELECT BIN_TO_UUID(id_doctor, TRUE)
+		 FROM prescription_template
+		 WHERE id_template = UUID_TO_BIN(?, TRUE) AND row_status_id = 3`,
+		templateID,
+	).Scan(&ownerID)
+	if err == sql.ErrNoRows {
+		writeJSONError(w, http.StatusNotFound, "template_not_found", "Prescripción no encontrada o ya está activa")
+		return
+	}
+	if err != nil {
+		serverError(w, "check_template_owner_activate", err)
+		return
+	}
+	if ownerID != doctorID {
+		writeJSONError(w, http.StatusForbidden, "template_not_owned", "Esta prescripción pertenece a otro médico")
+		return
+	}
+
+	_, err = database.Exec(
+		`UPDATE prescription_template SET row_status_id = 2
+		 WHERE id_template = UUID_TO_BIN(?, TRUE)`,
+		templateID,
+	)
+	if err != nil {
+		serverError(w, "activate_template", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ACTIVE"})
 }

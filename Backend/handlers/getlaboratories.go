@@ -21,9 +21,8 @@ func GetLaboratoriosPaginados(w http.ResponseWriter, r *http.Request) {
 	dbConn := db.InitDB()
 
 	rows, err := dbConn.Query(`
-		SELECT BIN_TO_UUID(id_laboratory, TRUE), laboratory_name
+		SELECT BIN_TO_UUID(id_laboratory, TRUE), laboratory_name, (row_status_id = 2)
 		FROM laboratory
-		WHERE row_status_id = 2
 		ORDER BY created_at DESC
 		LIMIT ? OFFSET ?
 	`, limit, offset)
@@ -36,7 +35,7 @@ func GetLaboratoriosPaginados(w http.ResponseWriter, r *http.Request) {
 	labs := []models.Laboratory{}
 	for rows.Next() {
 		var l models.Laboratory
-		if err := rows.Scan(&l.ID, &l.Name); err != nil {
+		if err := rows.Scan(&l.ID, &l.Name, &l.IsActive); err != nil {
 			log.Printf("Scan error laboratory: %v\n", err)
 			continue
 		}

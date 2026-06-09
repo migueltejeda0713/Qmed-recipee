@@ -1,6 +1,7 @@
 import React, { useState, useRef, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/listcomponents.css";
+import "../styles/listpacients.css";
 import Loading from "./Loading";
 import SearchIcon from "../svg/search-left-1504-svgrepo-com.svg";
 import DeleteIcon from "../svg/delete-svgrepo-com.svg";
@@ -11,6 +12,12 @@ import { API_URL, apiFetch } from "../utils/api";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import Draggable from "react-draggable";
 import { usePaginatedList } from "../hooks/usePaginatedList";
+
+const IconCheck = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
 
 const ListComponents = forwardRef((props, ref) => {
   const navigate = useNavigate();
@@ -28,7 +35,7 @@ const ListComponents = forwardRef((props, ref) => {
       idField: "id_component",
     });
 
-  const handleDelete = (id) =>
+  const handleInactivar = (id) =>
     confirmDialog({
       message: "¿Seguro que deseas inactivar este componente?",
       header: "Inactivar componente",
@@ -41,9 +48,29 @@ const ListComponents = forwardRef((props, ref) => {
             method: "DELETE",
           });
           if (!res.ok) throw new Error();
-          setItems((prev) => prev.filter((c) => c.id_component !== id));
+          setItems((prev) => prev.map((c) => c.id_component === id ? { ...c, is_active: false } : c));
         } catch {
-          alert("Error al eliminar el componente.");
+          alert("Error al inactivar el componente.");
+        }
+      },
+    });
+
+  const handleActivar = (id) =>
+    confirmDialog({
+      message: "¿Deseas activar este componente nuevamente?",
+      header: "Activar componente",
+      icon: "pi pi-check-circle",
+      acceptLabel: "Activar",
+      rejectLabel: "Cancelar",
+      accept: async () => {
+        try {
+          const res = await apiFetch(`${API_URL}/api/activatecomponente/${id}`, {
+            method: "PUT",
+          });
+          if (!res.ok) throw new Error();
+          setItems((prev) => prev.map((c) => c.id_component === id ? { ...c, is_active: true } : c));
+        } catch {
+          alert("Error al activar el componente.");
         }
       },
     });
@@ -77,13 +104,14 @@ const ListComponents = forwardRef((props, ref) => {
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {toRender.length === 0 ? (
             <tr>
-              <td colSpan="2" className="no-components-data">
+              <td colSpan="3" className="no-components-data">
                 {searchTerm
                   ? `No se encontraron para "${searchTerm}"`
                   : "No hay componentes registrados"}
@@ -91,8 +119,13 @@ const ListComponents = forwardRef((props, ref) => {
             </tr>
           ) : (
             toRender.map((c) => (
-              <tr key={c.id_component}>
+              <tr key={c.id_component} className={c.is_active === false ? "row-inactive" : ""}>
                 <td>{c.name}</td>
+                <td>
+                  <span className={`status-pill ${c.is_active === false ? "status-inactive" : "status-active"}`}>
+                    {c.is_active === false ? "Inactivo" : "Activo"}
+                  </span>
+                </td>
                 <td className="components-actions-cell actions-cell">
                   <button
                     className="btn btn-view"
@@ -102,17 +135,25 @@ const ListComponents = forwardRef((props, ref) => {
                   >
                     <img src={ViewIcon} alt="Ver" width={20} height={20} />
                   </button>
-                  <button
-                    className="btn btn-edit"
-                    onClick={() =>
-                      navigate("/editcomponente", { state: { componente: c, background: location } })
-                    }
-                  >
-                    <img src={EditIcon} alt="Editar" width={20} height={20} />
-                  </button>
-                  <button className="btn btn-delete" onClick={() => handleDelete(c.id_component)}>
-                    <img src={DeleteIcon} alt="Inactivar" width={20} height={20} />
-                  </button>
+                  {c.is_active !== false && (
+                    <button
+                      className="btn btn-edit"
+                      onClick={() =>
+                        navigate("/editcomponente", { state: { componente: c, background: location } })
+                      }
+                    >
+                      <img src={EditIcon} alt="Editar" width={20} height={20} />
+                    </button>
+                  )}
+                  {c.is_active === false ? (
+                    <button className="btn btn-activate" title="Activar" onClick={() => handleActivar(c.id_component)}>
+                      <IconCheck />
+                    </button>
+                  ) : (
+                    <button className="btn btn-delete" title="Inactivar" onClick={() => handleInactivar(c.id_component)}>
+                      <img src={DeleteIcon} alt="Inactivar" width={20} height={20} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))

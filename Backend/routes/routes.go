@@ -94,15 +94,21 @@ func RegisterRoutes(r *mux.Router) {
 		{"/api/paciente", handlers.InsertPaciente, []string{"POST", "OPTIONS"}},
 		{"/api/editpaciente/{id}", handlers.EditPaciente, []string{"PUT", "OPTIONS"}},
 		{"/api/deletepacient/{id}", handlers.DeletePaciente, []string{"DELETE", "OPTIONS"}},
+		{"/api/activatepacient/{id}", handlers.ActivatePaciente, []string{"PUT", "OPTIONS"}},
 		{"/api/medicamento", handlers.CreateMedicamento, []string{"POST", "OPTIONS"}},
+		{"/api/deletemedicamento/{id}", handlers.SoftDeleteMedicamento, []string{"DELETE", "OPTIONS"}},
+		{"/api/activatemedicamento/{id}", handlers.ActivateMedicamento, []string{"PUT", "OPTIONS"}},
 		{"/api/laboratorios", handlers.CreateLaboratorio, []string{"POST", "OPTIONS"}},
 		{"/api/deletelaboratorio/{id}", handlers.SoftDeleteLaboratorio, []string{"DELETE", "OPTIONS"}},
+		{"/api/activatelaboratorio/{id}", handlers.ActivateLaboratorio, []string{"PUT", "OPTIONS"}},
 		{"/api/deletecomponente/{id}", handlers.SoftDeleteComponente, []string{"DELETE", "OPTIONS"}},
+		{"/api/activatecomponente/{id}", handlers.ActivateComponente, []string{"PUT", "OPTIONS"}},
 		{"/api/componentes", handlers.CreateComponente, []string{"POST", "OPTIONS"}},
 
 		// Prescription templates
 		{"/api/prescription-templates", handlers.CreatePrescriptionTemplate, []string{"POST", "OPTIONS"}},
 		{"/api/prescription-templates/{id}/inactivate", handlers.InactivatePrescriptionTemplate, []string{"PUT", "OPTIONS"}},
+		{"/api/prescription-templates/{id}/activate", handlers.ActivatePrescriptionTemplate, []string{"PUT", "OPTIONS"}},
 
 		// Recipes
 		{"/api/recipes", handlers.CreateRecipe, []string{"POST", "OPTIONS"}},

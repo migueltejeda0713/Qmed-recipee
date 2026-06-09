@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func DeletePaciente(w http.ResponseWriter, r *http.Request) {
+func ActivatePaciente(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idPatient := vars["id"]
 
@@ -17,33 +17,27 @@ func DeletePaciente(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != http.MethodDelete {
-		clientError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Método HTTP no permitido")
-		return
-	}
-
 	email, _ := r.Context().Value(middleware.DoctorEmailKey).(string)
 
 	dbConn := db.InitDB()
 
-	query := `
-		UPDATE patient SET row_status_id = 3
+	result, err := dbConn.Exec(`
+		UPDATE patient SET row_status_id = 2
 		WHERE id_patient = UUID_TO_BIN(?, TRUE)
 		  AND id_doctor = (SELECT id_doctor FROM doctor WHERE email = ?)
-		  AND row_status_id = 2
-	`
-	result, err := dbConn.Exec(query, idPatient, email)
+		  AND row_status_id = 3
+	`, idPatient, email)
 	if err != nil {
-		serverError(w, "inactivate_patient", err)
+		serverError(w, "activate_patient", err)
 		return
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		clientError(w, http.StatusNotFound, "patient_not_found", "El paciente no existe, ya está inactivo o no pertenece a este médico")
+		clientError(w, http.StatusNotFound, "patient_not_found", "El paciente no existe, ya está activo o no pertenece a este médico")
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"INACTIVE"}`))
+	w.Write([]byte(`{"status":"ACTIVE"}`))
 }

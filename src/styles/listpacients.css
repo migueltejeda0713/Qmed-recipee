@@ -252,7 +252,7 @@
   color: oklch(48% 0.14 15);
 }
 
-/* Recipe status pills */
+/* Status pills */
 .status-pill {
   display: inline-block;
   padding: 2px 10px;
@@ -267,3 +267,24 @@
 .status-printed   { background: oklch(92% 0.05 220); color: oklch(35% 0.12 220); }
 .status-cancelled { background: oklch(92% 0.06 25);  color: oklch(40% 0.16 25);  }
 .status-expired   { background: oklch(92% 0.04 80);  color: oklch(40% 0.10 80);  }
+.status-active    { background: oklch(92% 0.08 145); color: oklch(35% 0.12 145); }
+.status-inactive  { background: oklch(92% 0.04 25);  color: oklch(40% 0.12 25);  }
+
+/* Activate button */
+.btn-activate {
+  background: oklch(92% 0.08 145);
+  color: oklch(35% 0.12 145);
+  border: 1.5px solid oklch(78% 0.10 145);
+  font-weight: 600;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+}
+.btn-activate:hover {
+  background: oklch(86% 0.10 145);
+}
+
+/* Dim inactive rows */
+tr.row-inactive td {
+  opacity: 0.6;
+}

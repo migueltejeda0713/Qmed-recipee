@@ -12,6 +12,7 @@ type MedicineResponse struct {
 	MedicineName   string `json:"medicine_name"`
 	ComponentName  string `json:"component_name"`
 	LaboratoryName string `json:"laboratory_name"`
+	IsActive       bool   `json:"is_active"`
 }
 
 func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
@@ -35,11 +36,11 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 			BIN_TO_UUID(m.id_medicine, TRUE),
 			m.medicine_name,
 			c.name,
-			l.laboratory_name
+			l.laboratory_name,
+			(m.row_status_id = 2)
 		FROM medicine m
 		JOIN component c ON m.id_component = c.id_component
 		JOIN laboratory l ON m.id_laboratory = l.id_laboratory
-		WHERE m.row_status_id = 2
 		ORDER BY m.created_at DESC
 		LIMIT ? OFFSET ?
 	`
@@ -55,7 +56,7 @@ func GetMedicamentos(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var m MedicineResponse
-		if err := rows.Scan(&m.ID, &m.MedicineName, &m.ComponentName, &m.LaboratoryName); err != nil {
+		if err := rows.Scan(&m.ID, &m.MedicineName, &m.ComponentName, &m.LaboratoryName, &m.IsActive); err != nil {
 			serverError(w, "scan_medicine", err)
 			return
 		}

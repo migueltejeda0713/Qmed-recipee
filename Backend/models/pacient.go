@@ -9,4 +9,5 @@ type Patient struct {
 	Phone        string `json:"phone"`
 	Provider     string `json:"provider"`
 	PolicyNumber string `json:"policy_number"`
+	IsActive     bool   `json:"is_active"`
 }

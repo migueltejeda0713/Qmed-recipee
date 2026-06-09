@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -67,17 +67,51 @@ function ModalRoutes({ paciente, setPaciente }) {
   );
 }
 
+const IconChevronLeft = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+);
+const IconChevronRight = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6"/>
+  </svg>
+);
+
 function ProtectedShell({ paciente, setPaciente }) {
   const location = useLocation();
   const backgroundLocation = location.state?.background;
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const toggleSidebar = useCallback(() => setSidebarOpen((v) => !v), []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+        e.preventDefault();
+        toggleSidebar();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggleSidebar]);
+
+  const hiddenClass = sidebarOpen ? "" : " sidebar-hidden";
 
   return (
     <div className="layout">
       <CommandPalette />
-      <aside className="sidebar-wrapper">
+      <aside className={`sidebar-wrapper${hiddenClass}`}>
         <SidebarMenu />
       </aside>
-      <main className="main-content">
+      <button
+        className={`sidebar-toggle-btn${hiddenClass}`}
+        onClick={toggleSidebar}
+        title={sidebarOpen ? "Ocultar sidebar (Ctrl+B)" : "Mostrar sidebar (Ctrl+B)"}
+      >
+        {sidebarOpen ? <IconChevronLeft /> : <IconChevronRight />}
+      </button>
+      <main className={`main-content${hiddenClass}`}>
         <Routes location={backgroundLocation || location}>
           <Route path="/" element={<RecetaForm />} />
           <Route path="/list-pacients" element={<ListaPacientes setPaciente={setPaciente} />} />

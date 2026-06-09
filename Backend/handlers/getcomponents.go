@@ -37,9 +37,8 @@ func GetComponentesPaginados(w http.ResponseWriter, r *http.Request) {
 	dbConn := db.InitDB()
 
 	query := `
-		SELECT BIN_TO_UUID(id_component, TRUE), name
+		SELECT BIN_TO_UUID(id_component, TRUE), name, (row_status_id = 2)
 		FROM component
-		WHERE row_status_id = 2
 		ORDER BY created_at DESC
 		LIMIT ? OFFSET ?
 	`
@@ -53,7 +52,7 @@ func GetComponentesPaginados(w http.ResponseWriter, r *http.Request) {
 	comps := []models.Component{}
 	for rows.Next() {
 		var c models.Component
-		if err := rows.Scan(&c.ID, &c.Name); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.IsActive); err != nil {
 			log.Printf("Scan error: %v\n", err)
 			continue
 		}
